@@ -513,7 +513,7 @@ export class Texture extends Widget{
             this.game.ctx.drawImage(
                 this.img,
                 this.game.canvas.width / 2 + this.x.get() + this.ui.x_center.get(),
-                this.game.canvas.height / 2 + this.y.get() + this.ui.x_center.get(),
+                this.game.canvas.height / 2 + this.y.get() + this.ui.y_center.get(),
                 this.width.get(), this.height.get()
             )
         }

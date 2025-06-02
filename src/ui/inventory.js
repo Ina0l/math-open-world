@@ -30,16 +30,18 @@ export class Inventory extends Ui{
                             )
                             b.ui.get_widget("consumable-choice-window").window_ui
                                 .get_widget("discard-window").window_ui
-                                .get_widget("discard-numberarea").max_char_number = itemstack.count.toString().length
+                                .get_widget("discard-numberarea").max_char_number =
+                                    itemstack.count.toString().length==0? 1: itemstack.count.toString().length
                             b.ui.get_widget("consumable-choice-window").activate()
                         } else {
                             b.ui.get_widget("regular-choice-window").update_config(
                                 b.game.inputHandler.mouse_pos.x + constants.TILE_SIZE / 13,
                                 b.game.inputHandler.mouse_pos.y + constants.TILE_SIZE / 13                
                             )
-                            b.ui.get_widget("consumable-choice-window").window_ui
+                            b.ui.get_widget("regular-choice-window").window_ui
                                 .get_widget("discard-window").window_ui
-                                .get_widget("discard-numberarea").max_char_number = itemstack.count.toString().length
+                                .get_widget("discard-numberarea").max_char_number =
+                                    itemstack.count.toString().length==0? 1: itemstack.count.toString().length
                             b.ui.get_widget("regular-choice-window").activate()
                         }
                     }
@@ -219,7 +221,7 @@ export class Inventory extends Ui{
         let widgets_array = [
             new Label(game, "tooltip-title-label", 0, 0, "", false, 4, constants.TILE_SIZE * 0.5, "white"),
             await Texture.create(game, "hovered-texture",
-                "inventory_hovered_tileset.png", 0, 0, slot_width, slot_width, false, 2),
+                "hovered.png", 0, 0, slot_width, slot_width, false, 2),
             new Window(game, "regular-choice-window",
                 await UiPrototype.create(game, "inventory_regular_discard_window.png", 0, 0, constants.TILE_SIZE, constants.TILE_SIZE, [
                     new Button(game, "discard-button", -constants.TILE_SIZE / 2, -constants.TILE_SIZE / 2, constants.TILE_SIZE, constants.TILE_SIZE / 2, true,
@@ -230,17 +232,18 @@ export class Inventory extends Ui{
                             )
                             button.ui.get_widget("discard-window").activate()
                         }),
-                    new Label(game, "discard-label", -constants.TILE_SIZE / 4, -constants.TILE_SIZE / 4, "Discard", true, 0, constants.TILE_SIZE / 6),
+                    new Label(game, "discard-label", -constants.TILE_SIZE / 4, -constants.TILE_SIZE / 4, "Discard", true, 0, constants.TILE_SIZE / 6, "white"),
                     new Button(game, "cancel-button", -constants.TILE_SIZE / 2, 0, constants.TILE_SIZE, constants.TILE_SIZE / 2, true,
                         (button, time) => {
                             button.ui.is_finished = true
                         }
                     ),
-                    new Label(game, "cancel-label", -constants.TILE_SIZE / 4, constants.TILE_SIZE / 4, "Cancel", true, 0, constants.TILE_SIZE / 6),
+                    new Label(game, "cancel-label", -constants.TILE_SIZE / 4, constants.TILE_SIZE / 4, "Cancel", true, 0, constants.TILE_SIZE / 6, "white"),
+                    await Texture.create(game, "hovered-texture", "hovered.png", 0, 0, constants.TILE_SIZE, constants.TILE_SIZE / 2, false, 1),
                     new Window(game, "discard-window",
                         await UiPrototype.create(game, "inventory_discard_count_window.png", 0, 0, constants.TILE_SIZE * 1.5, constants.TILE_SIZE, [
-                            new Label(game, "discard-label", -constants.TILE_SIZE * 0.625, -constants.TILE_SIZE / 4, "Discard count:", true, 0, constants.TILE_SIZE / 6),
-                            new NumberArea(game, "discard-numberarea", -constants.TILE_SIZE * 0.625, 0, constants.TILE_SIZE * 0.75, constants.TILE_SIZE / 4, 2, true, 0, constants.TILE_SIZE * 0.2),
+                            new Label(game, "discard-label", -constants.TILE_SIZE * 0.625, -constants.TILE_SIZE / 4, "Discard count:", true, 0, constants.TILE_SIZE / 6, "white"),
+                            new NumberArea(game, "discard-numberarea", -constants.TILE_SIZE * 0.625, 0, constants.TILE_SIZE * 0.75, constants.TILE_SIZE / 4, 2, true, 1, constants.TILE_SIZE * 0.2),
                             new Button(game, "confirm-button", constants.TILE_SIZE * 0.15, 0, constants.TILE_SIZE * 0.5, constants.TILE_SIZE / 4, true,
                                 (button, time) => {
                                     if(button.ui.source.ui.source.ui.get_slot(button.ui.source.ui.source.ui.clicked_slot).count < parseInt(button.ui.get_widget("discard-numberarea").content)) return
@@ -255,13 +258,35 @@ export class Inventory extends Ui{
                                     button.ui.is_finished = true
                                 }
                             ),
-                            new Label(game, "confirm-label", constants.TILE_SIZE * 0.15, constants.TILE_SIZE / 8, "confirm", true, 0, constants.TILE_SIZE * 0.15),
-                            new Label(game, "cancel-label", constants.TILE_SIZE * 0.15, constants.TILE_SIZE * 0.375, "cancel", true, 0, constants.TILE_SIZE * 0.15)
+                            new Label(game, "confirm-label", constants.TILE_SIZE * 0.15, constants.TILE_SIZE / 8, "confirm", true, 0, constants.TILE_SIZE * 0.15, "white"),
+                            new Label(game, "cancel-label", constants.TILE_SIZE * 0.15, constants.TILE_SIZE * 0.375, "cancel", true, 0, constants.TILE_SIZE * 0.15, "white"),
+                            await Texture.create(game, "hovered-texture", "hovered.png", 0, 0, constants.TILE_SIZE / 2, constants.TILE_SIZE / 4, false, 1),
+                            await Texture.create(game, "numberarea-texture", "inventory_discard_count_window_numberarea_texture.png", -constants.TILE_SIZE * 0.625, 0, constants.TILE_SIZE * 0.75, constants.TILE_SIZE / 4, true, 0)
                         ], (ui, time) => {
-
+                            if(ui.get_widget("confirm-button").is_hovered){
+                                ui.get_widget("hovered-texture").update_config(
+                                    constants.TILE_SIZE * 0.15, 0, null, null, true
+                                )
+                            } else if(ui.get_widget("cancel-button").is_hovered){
+                                ui.get_widget("hovered-texture").update_config(
+                                    constants.TILE_SIZE * 0.15, constants.TILE_SIZE / 4, null, null, true
+                                )
+                            } else {
+                                ui.get_widget("hovered-texture").rendered = false
+                            }
                         }))
                 ], (ui, time) => {
-
+                    if(ui.get_widget("discard-button").is_hovered){
+                        ui.get_widget("hovered-texture").update_config(
+                            -constants.TILE_SIZE / 2, -constants.TILE_SIZE / 2, null, null, true
+                        )
+                    } else if(ui.get_widget("cancel-button").is_hovered){
+                        ui.get_widget("hovered-texture").update_config(
+                            -constants.TILE_SIZE / 2, 0, null, null, true
+                        )
+                    } else {
+                        ui.get_widget("hovered-texture").rendered = false
+                    }
                 }), false
             ),
             new Window(game, "consumable-choice-window",
@@ -275,7 +300,7 @@ export class Inventory extends Ui{
                             inventory.get_widget(`item-count-${inventory.clicked_slot}`).text = inventory.get_slot(inventory.clicked_slot).count
                             button.ui.is_finished = true
                         }),
-                    new Label(game, "use-label", -constants.TILE_SIZE / 4, -constants.TILE_SIZE * 0.5, "Use", true, 0, constants.TILE_SIZE / 6),
+                    new Label(game, "use-label", -constants.TILE_SIZE / 4, -constants.TILE_SIZE * 0.5, "Use", true, 0, constants.TILE_SIZE / 6, "white"),
                     new Button(game, "discard-button", -constants.TILE_SIZE / 2, -constants.TILE_SIZE * 0.25, constants.TILE_SIZE, constants.TILE_SIZE / 2, true,
                         (button, time) => {
                             button.ui.get_widget("discard-window").update_config(
@@ -284,17 +309,18 @@ export class Inventory extends Ui{
                             )
                             button.ui.get_widget("discard-window").activate()
                         }),
-                    new Label(game, "discard-label", -constants.TILE_SIZE / 4, 0, "Discard", true, 0, constants.TILE_SIZE / 6),
+                    new Label(game, "discard-label", -constants.TILE_SIZE / 4, 0, "Discard", true, 0, constants.TILE_SIZE / 6, "white"),
                     new Button(game, "cancel-button", -constants.TILE_SIZE / 2, constants.TILE_SIZE * 0.25, constants.TILE_SIZE, constants.TILE_SIZE / 2, true,
                         (button, time) => {
                             button.ui.is_finished = true
                         }
                     ),
-                    new Label(game, "cancel-label", -constants.TILE_SIZE / 4, constants.TILE_SIZE * 0.5, "Cancel", true, 0, constants.TILE_SIZE / 6),
+                    new Label(game, "cancel-label", -constants.TILE_SIZE / 4, constants.TILE_SIZE * 0.5, "Cancel", true, 0, constants.TILE_SIZE / 6, "white"),
+                    await Texture.create(game, "hovered-texture", "hovered.png", 0, 0, constants.TILE_SIZE, constants.TILE_SIZE / 2, false, 1),
                     new Window(game, "discard-window",
                         await UiPrototype.create(game, "inventory_discard_count_window.png", 0, 0, constants.TILE_SIZE * 1.5, constants.TILE_SIZE, [
-                            new Label(game, "discard-label", -constants.TILE_SIZE * 0.625, -constants.TILE_SIZE / 4, "Discard count:", true, 0, constants.TILE_SIZE / 6),
-                            new NumberArea(game, "discard-numberarea", -constants.TILE_SIZE * 0.625, 0, constants.TILE_SIZE * 0.75, constants.TILE_SIZE / 4, 2, true, 0, constants.TILE_SIZE * 0.2),
+                            new Label(game, "discard-label", -constants.TILE_SIZE * 0.625, -constants.TILE_SIZE / 4, "Discard count:", true, 0, constants.TILE_SIZE / 6, "white"),
+                            new NumberArea(game, "discard-numberarea", -constants.TILE_SIZE * 0.625, 0, constants.TILE_SIZE * 0.75, constants.TILE_SIZE / 4, 2, true, 1, constants.TILE_SIZE * 0.2),
                             new Button(game, "confirm-button", constants.TILE_SIZE * 0.15, 0, constants.TILE_SIZE * 0.5, constants.TILE_SIZE / 4, true,
                                 (button, time) => {
                                     if(button.ui.source.ui.source.ui.get_slot(button.ui.source.ui.source.ui.clicked_slot).count < parseInt(button.ui.get_widget("discard-numberarea").content)) return
@@ -309,19 +335,46 @@ export class Inventory extends Ui{
                                     button.ui.is_finished = true
                                 }
                             ),
-                            new Label(game, "confirm-label", constants.TILE_SIZE * 0.15, constants.TILE_SIZE / 8, "confirm", true, 0, constants.TILE_SIZE * 0.15),
-                            new Label(game, "cancel-label", constants.TILE_SIZE * 0.15, constants.TILE_SIZE * 0.375, "cancel", true, 0, constants.TILE_SIZE * 0.15)
+                            new Label(game, "confirm-label", constants.TILE_SIZE * 0.15, constants.TILE_SIZE / 8, "confirm", true, 0, constants.TILE_SIZE * 0.15, "white"),
+                            new Label(game, "cancel-label", constants.TILE_SIZE * 0.15, constants.TILE_SIZE * 0.375, "cancel", true, 0, constants.TILE_SIZE * 0.15, "white"),
+                            await Texture.create(game, "hovered-texture", "hovered.png", 0, 0, constants.TILE_SIZE / 2, constants.TILE_SIZE / 4, false, 1),
+                            await Texture.create(game, "numberarea-texture", "inventory_discard_count_window_numberarea_texture.png", -constants.TILE_SIZE * 0.625, 0, constants.TILE_SIZE * 0.75, constants.TILE_SIZE / 4, true, 0)
                         ], (ui, time) => {
-
+                            if(ui.get_widget("confirm-button").is_hovered){
+                                ui.get_widget("hovered-texture").update_config(
+                                    constants.TILE_SIZE * 0.15, 0, null, null, true
+                                )
+                            } else if(ui.get_widget("cancel-button").is_hovered){
+                                ui.get_widget("hovered-texture").update_config(
+                                    constants.TILE_SIZE * 0.15, constants.TILE_SIZE / 4, null, null, true
+                                )
+                            } else {
+                                ui.get_widget("hovered-texture").rendered = false
+                            }
                         }))
                 ], (ui, time) => {
-
+                    if(ui.get_widget("use-button").is_hovered){
+                        ui.get_widget("hovered-texture").update_config(
+                            -constants.TILE_SIZE / 2, -constants.TILE_SIZE * 0.75, null, null, true
+                        )
+                    } else if(ui.get_widget("discard-button").is_hovered){
+                        ui.get_widget("hovered-texture").update_config(
+                            -constants.TILE_SIZE / 2, -constants.TILE_SIZE * 0.25, null, null, true
+                        )
+                    } else if(ui.get_widget("cancel-button").is_hovered){
+                        ui.get_widget("hovered-texture").update_config(
+                            -constants.TILE_SIZE / 2, constants.TILE_SIZE / 4, null, null, true
+                        )
+                    } else {
+                        ui.get_widget("hovered-texture").rendered = false
+                    }
                 }), false
             )
         ]
         for(let i=0; i<9; i++){
             widgets_array.push(await Texture.create(game, `item-texture-${i}`,
-                `hovered_inventory_icon.png`, Inventory.get_slot_coordinates(i).x, Inventory.get_slot_coordinates(i).y,
+                "hovered.png", /** The texture file here is only a placeholder */
+                Inventory.get_slot_coordinates(i).x, Inventory.get_slot_coordinates(i).y,
                 slot_width, slot_width, false, 0))
         }
         var inventory = new Inventory(game, widgets_array, slot_width)

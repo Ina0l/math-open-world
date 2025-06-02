@@ -151,7 +151,7 @@ export class Game {
 			)
 		}
 
-		/**@type {Array<{command: () => void, delay: Number, activation_time: Number}>} */
+		/**@type {Array<{command: () => void, delay: Number}>} */
 		this.planned = []
 	}
 
@@ -614,7 +614,7 @@ export class Game {
 
 
 		let lost_lights_widgets = [
-			await Texture.create(this, "hovered-texture", "hovered_lost_light_texture.png", 0, 0,
+			await Texture.create(this, "hovered-texture", "hovered.png", 0, 0,
 				constants.TILE_SIZE * 0.8, constants.TILE_SIZE * 0.8, false, 1)
 		]
 		for(let x=0; x < 5; x++){
@@ -678,7 +678,7 @@ export class Game {
 			})
 
 		// Uncomment if you want to test the problem:
-		//this.current_ui = lost_lights_problem
+		// this.current_ui = lost_lights_problem
 
 		requestAnimationFrame(this.loop.bind(this))
 	}
