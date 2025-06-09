@@ -174,7 +174,6 @@ export class Game {
 		await Tileset.create(this, "cabane_tileset.png", 16, constants.TILE_SIZE, 0)
 		await Tileset.create(this, "frog.png", 16, constants.TILE_SIZE * 0.5, 0)
 		await Tileset.create(this, "spider_tileset.png", 100, constants.TILE_SIZE * 4, 0)
-		await Tileset.create(this, "book_ui_focus.png", 4, this.canvas.width / 16, 0)
 		await Tileset.create(this, "next_page_arrow_tileset.png", 24, this.canvas.width * 0.05, 0)
 		await Tileset.create(this, 'Kanji.png', 16, constants.TILE_SIZE, 0)
 		await Tileset.create(this, 'Axe.png', 16, constants.TILE_SIZE, 0)
@@ -263,7 +262,7 @@ export class Game {
 				let numberarea_red = problem.get_widget("numberarea-red")
 				return [numberarea_pink.content, numberarea_blue.content, numberarea_red.content]
 			}, [
-				new Icon(this, "focus-icon", -100, -110, this.tilesets["book_ui_focus"], 1, false, 0),
+				await Texture.create(this, "hovered-texture", "hovered.png", 0, 0, constants.TILE_SIZE, constants.TILE_SIZE, false, 2),
 				new NumberArea(this, "numberarea-pink", -this.canvas.width * 0.078125, -this.canvas.width * 0.0859375,
 					this.canvas.width * 0.046875, this.canvas.width / 16,
 					1, true, 1, this.canvas.width / 16, "black", "Times New Roman", ""),
@@ -311,26 +310,26 @@ export class Game {
 				var numberarea_pink = problem.get_widget("numberarea-pink")
 				var numberarea_blue = problem.get_widget("numberarea-blue")
 				var numberarea_red = problem.get_widget("numberarea-red")
-				var focus_icon = problem.get_widget("focus-icon")
+				var hovered_texture = problem.get_widget("hovered-texture")
 
 				if(!problem.get_widget("open-button").rendered){
 					if(numberarea_pink.has_focus){
-						focus_icon.update_config(-this.canvas.width * 0.078125, -this.canvas.width * 0.0859375, null, 1, true)
+						hovered_texture.update_config(-this.canvas.width * 0.078125, -this.canvas.width * 0.0859375, null, null, true)
 					}else if(numberarea_blue.has_focus){
-						focus_icon.update_config(-this.canvas.width * 0.015625, -this.canvas.width * 0.0859375, null, 2, true)
+						hovered_texture.update_config(-this.canvas.width * 0.015625, -this.canvas.width * 0.0859375, null, null, true)
 					}else if(numberarea_red.has_focus){
-						focus_icon.update_config(this.canvas.width * 0.046875, -this.canvas.width * 0.0859375, null, 3, true)
+						hovered_texture.update_config(this.canvas.width * 0.046875, -this.canvas.width * 0.0859375, null, null, true)
 					} else if(numberarea_pink.is_hovered) {
-						focus_icon.update_config(-this.canvas.width * 0.078125, -this.canvas.width * 0.0859375, null, 1, true)
+						hovered_texture.update_config(-this.canvas.width * 0.078125, -this.canvas.width * 0.0859375, null, null, true)
 					} else if(numberarea_blue.is_hovered) {
-						focus_icon.update_config(-this.canvas.width * 0.015625, -this.canvas.width * 0.0859375, null, 2, true)
+						hovered_texture.update_config(-this.canvas.width * 0.015625, -this.canvas.width * 0.0859375, null, null, true)
 					} else if(numberarea_red.is_hovered) {
-						focus_icon.update_config(this.canvas.width * 0.046875, -this.canvas.width * 0.0859375, null, 3, true)
+						hovered_texture.update_config(this.canvas.width * 0.046875, -this.canvas.width * 0.0859375, null, null, true)
 					} else {
-						focus_icon.rendered = false
+						hovered_texture.rendered = false
 					}
 				}else{
-					focus_icon.rendered = false
+					hovered_texture.rendered = false
 				}
 
 				if(problem.get_widget("open-button").is_hovered)
