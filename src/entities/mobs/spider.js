@@ -3,6 +3,7 @@ import { Hitbox } from "../hitbox.js"
 import { constants } from "../../constants.js"
 import { Resizeable } from "../../utils.js"
 import { ProjectileAttack } from "../attack.js"
+import { Ai } from "../ai.js"
 
 /**
  * Spider enemy that chases player and periodically shoots projectiles
@@ -17,24 +18,8 @@ export class Spider extends Mob {
      * @param {number} worldY - Initial Y position
      * @param {number} [life=10] - Initial health
      */
-
     constructor(game, map, worldX, worldY, life = 10) {
-        const spiderAI = {
-            state: constants.WANDERING_AI_STATE,
-            chasing_range: new Resizeable(game, constants.TILE_SIZE * 5),
-			chasing_speed: new Resizeable(game, 10),
-            attack_cooldown: 2000,
-            last_attack: 0,
-            attack_range: new Resizeable(game, constants.TILE_SIZE * 8),
-            projectile_speed: new Resizeable(game, 30),
-			hostile: true,
-			wandering_direction_change_time: 1000,
-			wandering_radius: new Resizeable(game, 2),
-			wandering_speed: new Resizeable(game, 5)
-        }
-        
         const verticalOffset = -0.15625 * constants.TILE_SIZE
-        
         super(
             game,
             map,
@@ -44,13 +29,18 @@ export class Spider extends Mob {
             worldX,
             worldY,
             150,
-            spiderAI,
+            new Ai(game).set_wandering(constants.TILE_SIZE * 0.04, constants.TILE_SIZE / 64, 1000)
+                        .set_middle_ranged(
+                            constants.TILE_SIZE * 10, constants.TILE_SIZE * 0.04, 10000, 4,
+                            constants.TILE_SIZE * 0.02, constants.TILE_SIZE * 4.5, 2000
+                        )
+                        .set_attack(2000, constants.TILE_SIZE * 8, constants.TILE_SIZE * 0.23),
             life,
             {
                 combat: {x: 0, y: verticalOffset},
                 collision: {x: 0, y: verticalOffset}
             },
-			25
+			25, "Spider"
         )
     }
 
