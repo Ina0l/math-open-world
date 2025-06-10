@@ -5,7 +5,7 @@ import { Talkable } from "../entities/talkable.js"
 import { Resizeable, YResizeable } from "../utils.js"
 import { Widget, Window } from "./widgets.js"
 
-export class UiPrototype {
+export class UiBase {
     /**
      * !!! One shouldn't use the constructor to make an ui, use the static create method instead
      * @param {Game} game - The current game
@@ -14,7 +14,7 @@ export class UiPrototype {
      * @param {Number | Resizeable | YResizeable} width - The Ui's width on the screen
      * @param {Number | Resizeable | YResizeable} height - The Ui's height on the screen
      * @param {Array<Widget>} widgets - The list of widgets that shows up on the ui
-     * @param {(ui: UiPrototype, time: Number) => void} widgets_states_handler - method made to handle widgets states (like widgets being 'cliked' on 'focused-on'), executed at each update
+     * @param {(ui: UiBase, time: Number) => void} widgets_states_handler - method made to handle widgets states (like widgets being 'cliked' on 'focused-on'), executed at each update
      */
     constructor(game, x, y, width, height, widgets, widgets_states_handler){
         this.game = game
@@ -63,11 +63,11 @@ export class UiPrototype {
      * @param {Number} width - The Ui's width on the screen
      * @param {Number} height - The Ui's height on the screen
      * @param {Array<Widget>} widgets - The list of widgets that shows up on the ui
-     * @param {(ui: UiPrototype, time: Number) => void} widgets_state_handler - method made to handle widgets states (like widgets being 'cliked' on 'focused-on'), executed at each update
+     * @param {(ui: UiBase, time: Number) => void} widgets_state_handler - method made to handle widgets states (like widgets being 'cliked' on 'focused-on'), executed at each update
      * @returns {Promise<Ui>}
      */
     static async create(game, src, x, y, width, height, widgets, widgets_state_handler){
-        const ui = new UiPrototype(game, x, y, width, height, widgets, widgets_state_handler)
+        const ui = new UiBase(game, x, y, width, height, widgets, widgets_state_handler)
         try {
 			await ui.load(config.IMG_DIR + src)
 		} catch (error) {
@@ -176,15 +176,13 @@ export class UiPrototype {
 
     sort_widgets(){
         this.widgets.sort((a, b) => {
-            if(a.layer == null){
-                if(b.layer == null)
-                    return constants.WIDGET_PRIORITIES[a.type] - constants.WIDGET_PRIORITIES[b.type]
-                else
-                    return 1
-            } else if(b.layer == null) return -1
-            else {
+            if(a==b) return constants.WIDGET_PRIORITIES[a.type] - constants.WIDGET_PRIORITIES[b.type]
+            if(a.layer == null)
+                return 1
+            else if(b.layer == null)
+                return -1
+            else 
                 return a.layer - b.layer
-            }
         })
     }
 
@@ -208,7 +206,7 @@ export class UiPrototype {
     }
 }
 
-export class Ui extends UiPrototype{
+export class Ui extends UiBase{
     /**
      * !!! One shouldn't use the constructor to make an ui, use the static create method instead
      * @param {Game} game - The current game

@@ -153,7 +153,7 @@ export class Game {
 			)
 		}
 
-		/**@type {Array<{command: () => void, delay: Number, activation_time: Number}>} */
+		/**@type {Array<{command: () => void, delay: Number}>} */
 		this.scheduled = []
 	}
 
@@ -203,9 +203,8 @@ export class Game {
 		new Spider(this, this.maps["new_map"], constants.TILE_SIZE * 104, constants.TILE_SIZE * 73, 100)
 		new Frog(this, this.maps["new_map"], constants.TILE_SIZE * 117, constants.TILE_SIZE * 86)
 
-		const inventory = await Inventory.create(this, "inventory.png")
 		this.inventory_unlocked = false
-		this.player = new Player(this, this.tilesets["Kanji"], inventory)
+		this.player = new Player(this, this.tilesets["Kanji"], await Inventory.create(this, "inventory.png"))
 
 		const draggable = new Entity(
 			this, this.maps["new_map"], this.tilesets["Kanji"], 
@@ -222,38 +221,43 @@ export class Game {
 		this.player.set_map(this.get_current_map())
 		// needed to place the player correctly
 		this.player.updateHitboxes()
-		
-
-		const colors_problem_finishing_ui = await Ui.create(this, "opened_book_ui.png", this.canvas.width * 0.6875, this.canvas.width * 0.453125, [
-			new Button(this, "button",
-				- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
-				true, (button) => {
-					button.ui.is_finished = true
-				})
-			], (ui) => {}
-		)
 
 		const black_transition = new UnicoloreTransition(this, 500, "black")
 
 		const test_consumable = await Consumable.create(this, "Item_71.png", "Feather",
 			(c, time) => {this.effects.SPEED2.apply(time, this.player, 10000)}
 		)
-    
-		const test_consumable_stack = new ItemStack(test_consumable, 1)
-		inventory.add_items(test_consumable_stack)
+		this.player.inventory.add_items(new ItemStack(test_consumable, 1))
 		
-		const test_item = (await Passive.create(this, "Item_51.png", "Ring", (p, time) => {
-			// Totally temporary
-			// this.effects.BIG_HITBOX.apply(time, this.player, 100) it's very annoying so i'll turn that off for a bit
+		/** @type {Passive} */
+		const test_ring = (await Passive.create(this, "Item_51.png", "Ring", (p, time) => {
+			// this.effects.BIG_HITBOX.apply(time, this.player, 100) it's a very annoying test effect so i'll turn that off for a bit
 		})).set_tooltip("This ring make a barrier arround you that allows you to touch or be touched from further away")
-		const test_item_stack = new ItemStack(test_item, 1)
-		inventory.add_items(test_item_stack)
+		this.player.inventory.add_items(new ItemStack(test_ring, 1))
 
-		const test_consumable2 = (await Consumable.create(this, "Item_Black3.png", "Speed Potion",
+		/** @type {Consumable} */
+		const test_potion = (await Consumable.create(this, "Item_Black3.png", "Speed Potion",
 			(c, time) => {this.effects.SPEED1.apply(time, this.player, 10000)}
-		)).set_tooltip("Drinking this potion makes you faster for a certain period")
-		const test_consumable_stack2 = new ItemStack(test_consumable2, 5)
-		inventory.add_items(test_consumable_stack2)
+		)).set_max_count(16)
+		.set_tooltip("Drinking this potion makes you faster for a certain period")
+		this.player.inventory.add_items(new ItemStack(test_potion, 15))
+
+		const test_key = (await Item.create(this, "key.png", "Key"))
+							.set_tooltip("A mysterious key which open who know what (no just kidding that's just a test for quest item)")
+							.set_max_count(1)
+							.set_quest_item()
+		this.player.inventory.add_items(new ItemStack(test_key, 1))
+
+		const colors_problem_finishing_ui = await Ui.create(this, "opened_book_ui.png", this.canvas.width * 0.6875, this.canvas.width * 0.453125, [
+			new Button(this, "button",
+				- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
+				true, (button) => {
+					button.ui.is_finished = true
+					this.player.inventory.add_items(new ItemStack(test_potion, 3))
+					this.inventory_unlocked = true
+				})
+			], (ui) => {}
+		)
 
 		const colors_problem = await Problem.create(
 			this, "book_ui.png", this.canvas.width * 0.34375, this.canvas.width * 0.453125, ["3", "4", "4"], (problem) => {
@@ -344,9 +348,8 @@ export class Game {
 					numberarea_pink.usable = false
 					numberarea_blue.usable = false
 					numberarea_red.usable = false
-					this.inventory_unlocked = true
 					problem.unfocus()
-				}	
+				}
 			}
 		)
 		const colors_problem_shelf = new Talkable(this, this.get_current_map(),
@@ -622,7 +625,7 @@ export class Game {
 
 
 		let lost_lights_widgets = [
-			await Texture.create(this, "hovered-texture", "hovered_lost_light_texture.png", 0, 0,
+			await Texture.create(this, "hovered-texture", "hovered.png", 0, 0,
 				constants.TILE_SIZE * 0.8, constants.TILE_SIZE * 0.8, false, 1)
 		]
 		for (let x=0; x < 5; x++){
@@ -1016,7 +1019,7 @@ export class Game {
 	}
 
 	/**
-	 * Allows to schedule command to be executed after a certain amount of updates,
+	 * Allows to schedule command to be executed after a certain amount of updates, 0 being the next update
 	 * ⚠ make sure that the values that you use in the command still exist after that amount of update
 	 * @param {() => void} command 
 	 * @param {number} delay 
