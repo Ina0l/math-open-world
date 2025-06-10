@@ -47,7 +47,9 @@ export class OptionsMenu extends Ui{
                 game.tilesets["selection_cursor"], 1, true, 1)
                 .center_arround(constants.TILE_SIZE * 1.5, constants.TILE_SIZE)
         ], (ui, t) => {
+            /** @type {Button} */
             let music_volume_button = ui.get_widget("music-volume-button")
+            /** @type {Button} */
             let sound_effects_volume_button = ui.get_widget("sound-effects-volume-button")
             if(music_volume_button.is_hovered || music_volume_button.is_clicked)
                 ui.get_widget("music-volume-cursor-icon").tile_nb = 2

@@ -201,9 +201,8 @@ export class Game {
 		new Spider(this, this.maps["map"], constants.TILE_SIZE * 2, constants.TILE_SIZE * 2)
 		new Frog(this, this.maps["map"], constants.TILE_SIZE * 12, constants.TILE_SIZE * 12, 0.5)
 
-		const inventory = await Inventory.create(this, "inventory.png")
 		this.inventory_unlocked = false
-		this.player = new Player(this, this.tilesets["Kanji"], inventory)
+		this.player = new Player(this, this.tilesets["Kanji"], await Inventory.create(this, "inventory.png"))
 
 		const draggable = new Entity(
 			this, this.maps["new_map"], this.tilesets["Kanji"], 
@@ -226,27 +225,27 @@ export class Game {
 		const test_consumable = await Consumable.create(this, "Item_71.png", "Feather",
 			(c, time) => {this.effects.SPEED2.apply(time, this.player, 10000)}
 		)
-		inventory.add_items(new ItemStack(test_consumable, 1))
+		this.player.inventory.add_items(new ItemStack(test_consumable, 1))
 		
 		/** @type {Passive} */
 		const test_ring = (await Passive.create(this, "Item_51.png", "Ring", (p, time) => {
 			// Totally temporary
 			this.effects.BIG_HITBOX.apply(time, this.player, 100)
 		})).set_tooltip("This ring make a barrier arround you that allows you to touch or be touched from further away")
-		inventory.add_items(new ItemStack(test_ring, 1))
+		this.player.inventory.add_items(new ItemStack(test_ring, 1))
 
 		/** @type {Consumable} */
 		const test_potion = (await Consumable.create(this, "Item_Black3.png", "Speed Potion",
 			(c, time) => {this.effects.SPEED1.apply(time, this.player, 10000)}
 		)).set_max_count(16)
 		.set_tooltip("Drinking this potion makes you faster for a certain period")
-		inventory.add_items(new ItemStack(test_potion, 15))
+		this.player.inventory.add_items(new ItemStack(test_potion, 15))
 
 		const test_key = (await Item.create(this, "key.png", "Key"))
 							.set_tooltip("A mysterious key which open who know what (no just kidding that's just a test for quest item)")
 							.set_max_count(1)
 							.set_quest_item()
-		inventory.add_items(new ItemStack(test_key, 1))
+		this.player.inventory.add_items(new ItemStack(test_key, 1))
 
 		const colors_problem_finishing_ui = await Ui.create(this, "opened_book_ui.png", this.canvas.width * 0.6875, this.canvas.width * 0.453125, [
 			new Button(this, "button",

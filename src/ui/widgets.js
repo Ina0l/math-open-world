@@ -139,6 +139,12 @@ export class Button extends Widget{
         this.should_execute = false
     }
 
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {Button}
+     */
     center_arround(x, y){
         this.x.set_value(x - this.width.get() / 2)
         this.y.set_value(y - this.height.get() / 2)
@@ -168,6 +174,7 @@ export class Button extends Widget{
             }
         } else {
             this.is_hovered = false
+            this.is_clicked = false
             if(this.game.inputHandler.isMouseDown(0) || this.game.inputHandler.isMouseDown(2))
                 this.has_focus = false
                 this.ui.focused_widgets.splice(this.ui.focused_widgets.indexOf(this), 1)
@@ -240,6 +247,12 @@ export class TextArea extends Widget{
         this.usable = true
     }
 
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {TextArea}
+     */
     center_arround(x, y){
         this.x.set_value(x - this.width.get() / 2)
         this.y.set_value(y - this.height.get() / 2)
@@ -290,6 +303,7 @@ export class TextArea extends Widget{
             }
         } else {
             this.is_hovered = false
+            this.is_clicked = false
             if(this.game.inputHandler.isMouseDown(0) || this.game.inputHandler.isMouseDown(2))
                 this.has_focus = false
                 this.ui.focused_widgets.splice(this.ui.focused_widgets.indexOf(this), 1)
@@ -397,6 +411,12 @@ export class Icon extends Widget{
         this.tile_nb = tile_nb
     }
 
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {Icon}
+     */
     center_arround(x, y){
         this.x.set_value(x - this.tileset.screen_tile_size.get() / 2)
         this.y.set_value(y - this.tileset.screen_tile_size.get() / 2)
@@ -502,6 +522,12 @@ export class Texture extends Widget{
 		this.img = img
     }
 
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {Texture}
+     */
     center_arround(x, y){
         this.x.set_value(x - this.width.get() / 2)
         this.y.set_value(y - this.height.get() / 2)
