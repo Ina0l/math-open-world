@@ -227,6 +227,8 @@ export class Game {
 				- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
 				true, (button) => {
 					button.ui.is_finished = true
+					this.player.inventory.add_items(new ItemStack(test_consumable2, 3))
+					this.inventory_unlocked = true
 				})
 			], (ui) => {}
 		)
@@ -250,8 +252,9 @@ export class Game {
 
 		const test_consumable2 = (await Consumable.create(this, "Item_Black3.png", "Speed Potion",
 			(c, time) => {this.effects.SPEED1.apply(time, this.player, 10000)}
-		)).set_tooltip("Drinking this potion makes you faster for a certain period")
-		const test_consumable_stack2 = new ItemStack(test_consumable2, 5)
+		)).set_max_count(16)
+		.set_tooltip("Drinking this potion makes you faster for a certain period")
+		const test_consumable_stack2 = new ItemStack(test_consumable2, 15)
 		inventory.add_items(test_consumable_stack2)
 
 		const colors_problem = await Problem.create(
@@ -343,9 +346,8 @@ export class Game {
 					numberarea_pink.usable = false
 					numberarea_blue.usable = false
 					numberarea_red.usable = false
-					this.inventory_unlocked = true
 					problem.unfocus()
-				}	
+				}
 			}
 		)
 		const colors_problem_shelf = new Talkable(this, this.get_current_map(),

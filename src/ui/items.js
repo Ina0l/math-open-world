@@ -124,6 +124,7 @@ export class ItemStack{
      * @param {Number} count
      */
     constructor(item, count){
+        if(item.max_count < count) console.error("Max item count reached")
         this.game = item.game
         this.item = item
         this.count = count
@@ -137,7 +138,7 @@ export class ItemStack{
      */
     add_count(n){
         if(this.count < -n) console.error("Negative item count")
-        if(this.count + n > this.item.max_count) return 
+        if(this.count + n > this.item.max_count) console.error("Max item count reached") 
         this.count += n
     }
 }

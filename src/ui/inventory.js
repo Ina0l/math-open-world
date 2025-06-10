@@ -425,11 +425,16 @@ export class Inventory extends Ui{
      */
     get_next_empty_slot(item){
         for(let i = 0; i < 9; i++){
-            if(this.get_slot(i)?.item == item) return i
+            if(this.get_slot(i)?.item == item){
+                if(this.get_slot(i).count < this.get_slot(i).item.max_count){
+                    return i
+                }
+            }
         }
         for(let i = 0; i < 9; i++){
             if(this.get_slot(i) == null) return i
         }
+        return -1
     }
 
     /**
@@ -465,15 +470,28 @@ export class Inventory extends Ui{
     }
 
     /**
-     * 
+     * Add an itemstack to the inventory.
+     * If something is returned, it means that the inventory is full
      * @param {ItemStack} itemstack 
+     * @returns {undefined | ItemStack}
      */
     add_items(itemstack){
         var slot = this.get_next_empty_slot(itemstack.item)
+        if(slot==-1){
+            console.log("inventory full")
+            return itemstack
+        }
         this.get_widget(`item-texture-${slot}`).img = this.game.items[itemstack.item.name].img
         this.get_widget(`item-texture-${slot}`).rendered = true
         if(this.get_slot(slot) != null && this.get_slot(slot).item == itemstack.item){
-            this.get_slot(slot).add_count(itemstack.count)
+            if(this.get_slot(slot).count + itemstack.count <= itemstack.item){
+                this.get_slot(slot).add_count(itemstack.count)
+            } else {
+                itemstack.count = itemstack.count + this.get_slot(slot).count - itemstack.item.max_count
+                this.get_slot(slot).count = itemstack.item.max_count
+                let error = this.add_items(itemstack)
+                if(error) return error
+            }
         }else{
             this.set_slot(slot, itemstack)
         }
