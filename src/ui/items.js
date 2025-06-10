@@ -15,6 +15,7 @@ export class Item{
         /** @type {Array<String>} */
         this.tooltip = null
         this.max_count = 99
+        this.quest_item = false
     }
 
     static async create(game, src, name){
@@ -48,8 +49,22 @@ export class Item{
         return this
     }
 
+    /**
+     * 
+     * @param {Number} count 
+     * @returns {Item}
+     */
     set_max_count(count){
         this.max_count = count
+        return this
+    }
+
+    /**
+     * 
+     * @returns {Item}
+     */
+    set_quest_item(){
+        this.quest_item = true
         return this
     }
 }
@@ -124,6 +139,7 @@ export class ItemStack{
      * @param {Number} count
      */
     constructor(item, count){
+        if(item.max_count < count) console.error("Max item count reached")
         this.game = item.game
         this.item = item
         this.count = count
@@ -137,7 +153,7 @@ export class ItemStack{
      */
     add_count(n){
         if(this.count < -n) console.error("Negative item count")
-        if(this.count + n > this.item.max_count) return 
+        if(this.count + n > this.item.max_count) console.error("Max item count reached") 
         this.count += n
     }
 }

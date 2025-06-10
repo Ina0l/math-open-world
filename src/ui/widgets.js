@@ -2,7 +2,7 @@ import { config, constants } from "../constants.js"
 import { Game } from "../core/game.js"
 import { Resizeable, YResizeable } from "../utils.js"
 import { Tileset } from "../world/tileset.js"
-import { UiPrototype } from "./ui.js"
+import { UiBase } from "./ui.js"
 
 export class Widget{
     /**
@@ -25,7 +25,7 @@ export class Widget{
         this.type = type
         this.id = id
         this.layer = layer
-        /** @type {UiPrototype} */
+        /** @type {UiBase} */
         this.ui = null
         this.rendered = rendered
         this.is_clicked = false
@@ -139,6 +139,12 @@ export class Button extends Widget{
         this.should_execute = false
     }
 
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {Button}
+     */
     center_arround(x, y){
         this.x.set_value(x - this.width.get() / 2)
         this.y.set_value(y - this.height.get() / 2)
@@ -168,6 +174,7 @@ export class Button extends Widget{
             }
         } else {
             this.is_hovered = false
+            this.is_clicked = false
             if(this.game.inputHandler.isMouseDown(0) || this.game.inputHandler.isMouseDown(2))
                 this.has_focus = false
                 this.ui.focused_widgets.splice(this.ui.focused_widgets.indexOf(this), 1)
@@ -240,6 +247,12 @@ export class TextArea extends Widget{
         this.usable = true
     }
 
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {TextArea}
+     */
     center_arround(x, y){
         this.x.set_value(x - this.width.get() / 2)
         this.y.set_value(y - this.height.get() / 2)
@@ -290,6 +303,7 @@ export class TextArea extends Widget{
             }
         } else {
             this.is_hovered = false
+            this.is_clicked = false
             if(this.game.inputHandler.isMouseDown(0) || this.game.inputHandler.isMouseDown(2))
                 this.has_focus = false
                 this.ui.focused_widgets.splice(this.ui.focused_widgets.indexOf(this), 1)
@@ -397,6 +411,12 @@ export class Icon extends Widget{
         this.tile_nb = tile_nb
     }
 
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {Icon}
+     */
     center_arround(x, y){
         this.x.set_value(x - this.tileset.screen_tile_size.get() / 2)
         this.y.set_value(y - this.tileset.screen_tile_size.get() / 2)
@@ -502,6 +522,12 @@ export class Texture extends Widget{
 		this.img = img
     }
 
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {Texture}
+     */
     center_arround(x, y){
         this.x.set_value(x - this.width.get() / 2)
         this.y.set_value(y - this.height.get() / 2)
@@ -513,7 +539,7 @@ export class Texture extends Widget{
             this.game.ctx.drawImage(
                 this.img,
                 this.game.canvas.width / 2 + this.x.get() + this.ui.x_center.get(),
-                this.game.canvas.height / 2 + this.y.get() + this.ui.x_center.get(),
+                this.game.canvas.height / 2 + this.y.get() + this.ui.y_center.get(),
                 this.width.get(), this.height.get()
             )
         }
@@ -540,10 +566,13 @@ export class Texture extends Widget{
 
 export class Window extends Widget{
     /**
-     * Widget Allowing to make Uis in an Ui, like a pop-up or a window (unexpectedly)
+     * Widget Allowing to make Uis in an Ui, like a pop-up or a window (unexpectedly).
+     * When using the window, make sure you don't mix the 'ui' and the 'window_ui' properties
+     * The first is the ui in which the window is contained (same as every other widget).
+     * The later one is the UiBase contained inside the window
      * @param {Game} game - The current game
      * @param {String} id - The widget's Id
-     * @param {UiPrototype} window_ui - The Ui contained in the window
+     * @param {UiBase} window_ui - The Ui contained in the window
      * @param {Boolean} fast_exit - If true, then the window can be closed easily just by clicking outside of it
      */
     constructor(game, id, window_ui, fast_exit){
@@ -609,6 +638,11 @@ export class Window extends Widget{
         if(fast_exit != null) this.fast_exit = fast_exit
     }
 
+    /**
+     * Method used to start the rendering and the updating of the window,
+     * after a window is activated, the containing ui doesn't update until
+     * the window's ui is marked as finished
+     */
     activate(){
         this.ui.active_window = this
     }
