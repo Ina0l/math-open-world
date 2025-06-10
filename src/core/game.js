@@ -220,42 +220,44 @@ export class Game {
 		this.player.set_map(this.get_current_map())
 		// needed to place the player correctly
 		this.player.updateHitboxes()
-		
-
-		const colors_problem_finishing_ui = await Ui.create(this, "opened_book_ui.png", this.canvas.width * 0.6875, this.canvas.width * 0.453125, [
-			new Button(this, "button",
-				- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
-				true, (button) => {
-					button.ui.is_finished = true
-					this.player.inventory.add_items(new ItemStack(test_consumable2, 3))
-					this.inventory_unlocked = true
-				})
-			], (ui) => {}
-		)
 
 		const black_transition = new UnicoloreTransition(this, 500, "black")
 
 		const test_consumable = await Consumable.create(this, "Item_71.png", "Feather",
 			(c, time) => {this.effects.SPEED2.apply(time, this.player, 10000)}
 		)
-    
-		const test_consumable_stack = new ItemStack(test_consumable, 1)
-		inventory.add_items(test_consumable_stack)
+		inventory.add_items(new ItemStack(test_consumable, 1))
 		
-		const test_item = (await Passive.create(this, "Item_51.png", "Ring", (p, time) => {
+		/** @type {Passive} */
+		const test_ring = (await Passive.create(this, "Item_51.png", "Ring", (p, time) => {
 			// Totally temporary
 			this.effects.BIG_HITBOX.apply(time, this.player, 100)
-		//this.effects.BIG_HITBOX.apply(time, this.player, 100) it's very annoying so i'll turn that off for a bit
-	})).set_tooltip("This ring make a barrier arround you that allows you to touch or be touched from further away")
-		const test_item_stack = new ItemStack(test_item, 1)
-		inventory.add_items(test_item_stack)
+		})).set_tooltip("This ring make a barrier arround you that allows you to touch or be touched from further away")
+		inventory.add_items(new ItemStack(test_ring, 1))
 
-		const test_consumable2 = (await Consumable.create(this, "Item_Black3.png", "Speed Potion",
+		/** @type {Consumable} */
+		const test_potion = (await Consumable.create(this, "Item_Black3.png", "Speed Potion",
 			(c, time) => {this.effects.SPEED1.apply(time, this.player, 10000)}
 		)).set_max_count(16)
 		.set_tooltip("Drinking this potion makes you faster for a certain period")
-		const test_consumable_stack2 = new ItemStack(test_consumable2, 15)
-		inventory.add_items(test_consumable_stack2)
+		inventory.add_items(new ItemStack(test_potion, 15))
+
+		const test_key = (await Item.create(this, "key.png", "Key"))
+							.set_tooltip("A mysterious key which open who know what (no just kidding that's just a test for quest item)")
+							.set_max_count(1)
+							.set_quest_item()
+		inventory.add_items(new ItemStack(test_key, 1))
+
+		const colors_problem_finishing_ui = await Ui.create(this, "opened_book_ui.png", this.canvas.width * 0.6875, this.canvas.width * 0.453125, [
+			new Button(this, "button",
+				- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
+				true, (button) => {
+					button.ui.is_finished = true
+					this.player.inventory.add_items(new ItemStack(test_potion, 3))
+					this.inventory_unlocked = true
+				})
+			], (ui) => {}
+		)
 
 		const colors_problem = await Problem.create(
 			this, "book_ui.png", this.canvas.width * 0.34375, this.canvas.width * 0.453125, ["3", "4", "4"], (problem) => {

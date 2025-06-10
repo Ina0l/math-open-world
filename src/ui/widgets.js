@@ -2,7 +2,7 @@ import { config, constants } from "../constants.js"
 import { Game } from "../core/game.js"
 import { Resizeable, YResizeable } from "../utils.js"
 import { Tileset } from "../world/tileset.js"
-import { UiPrototype } from "./ui.js"
+import { UiBase } from "./ui.js"
 
 export class Widget{
     /**
@@ -25,7 +25,7 @@ export class Widget{
         this.type = type
         this.id = id
         this.layer = layer
-        /** @type {UiPrototype} */
+        /** @type {UiBase} */
         this.ui = null
         this.rendered = rendered
         this.is_clicked = false
@@ -540,10 +540,13 @@ export class Texture extends Widget{
 
 export class Window extends Widget{
     /**
-     * Widget Allowing to make Uis in an Ui, like a pop-up or a window (unexpectedly)
+     * Widget Allowing to make Uis in an Ui, like a pop-up or a window (unexpectedly).
+     * When using the window, make sure you don't mix the 'ui' and the 'window_ui' properties
+     * The first is the ui in which the window is contained (same as every other widget).
+     * The later one is the UiBase contained inside the window
      * @param {Game} game - The current game
      * @param {String} id - The widget's Id
-     * @param {UiPrototype} window_ui - The Ui contained in the window
+     * @param {UiBase} window_ui - The Ui contained in the window
      * @param {Boolean} fast_exit - If true, then the window can be closed easily just by clicking outside of it
      */
     constructor(game, id, window_ui, fast_exit){
@@ -609,6 +612,11 @@ export class Window extends Widget{
         if(fast_exit != null) this.fast_exit = fast_exit
     }
 
+    /**
+     * Method used to start the rendering and the updating of the window,
+     * after a window is activated, the containing ui doesn't update until
+     * the window's ui is marked as finished
+     */
     activate(){
         this.ui.active_window = this
     }
