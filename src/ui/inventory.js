@@ -529,7 +529,6 @@ export class Inventory extends Ui{
     add_items(itemstack){
         var slot = this.get_next_empty_slot(itemstack.item)
         if(slot==-1){
-            console.log("inventory full")
             return itemstack
         }
         this.get_widget(`item-texture-${slot}`).img = this.game.items[itemstack.item.name].img

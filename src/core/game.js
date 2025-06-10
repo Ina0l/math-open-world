@@ -24,7 +24,7 @@ import { Tileset } from '../world/tileset.js'
 
 export class Game {
 	constructor() {
-		this.last_update = -1000/constants.GAME_TPS
+		this.last_update = -1000/constants.GAME_MAX_TPS
 
 		// setup canvas & context
 		/** @type {HTMLCanvasElement} */
@@ -243,7 +243,7 @@ export class Game {
 		this.player.inventory.add_items(new ItemStack(test_potion, 15))
 
 		const test_key = (await Item.create(this, "key.png", "Key"))
-							.set_tooltip("A mysterious key which open who know what (no just kidding that's just a test for quest item)")
+							.set_tooltip("A mysterious key which open who know what (no just kidding that's just a test for quest item, it doesn't have a purpose)")
 							.set_max_count(1)
 							.set_quest_item()
 		this.player.inventory.add_items(new ItemStack(test_key, 1))
@@ -260,45 +260,45 @@ export class Game {
 		)
 
 		const colors_problem = await Problem.create(
-			this, "book_ui.png", this.canvas.width * 0.34375, this.canvas.width * 0.453125, ["3", "4", "4"], (problem) => {
+			this, "book_ui.png", constants.TILE_SIZE * 3, constants.TILE_SIZE * 0.15 * 27, ["3", "4", "4"], (problem) => {
 				let numberarea_pink = problem.get_widget("numberarea-pink")
 				let numberarea_blue = problem.get_widget("numberarea-blue")
 				let numberarea_red = problem.get_widget("numberarea-red")
 				return [numberarea_pink.content, numberarea_blue.content, numberarea_red.content]
 			}, [
-				await Texture.create(this, "hovered-texture", "hovered.png", 0, 0, constants.TILE_SIZE, constants.TILE_SIZE, false, 2),
-				new NumberArea(this, "numberarea-pink", -this.canvas.width * 0.078125, -this.canvas.width * 0.0859375,
-					this.canvas.width * 0.046875, this.canvas.width / 16,
+				await Texture.create(this, "hovered-texture", "hovered.png", 0, 0, constants.TILE_SIZE * 0.15 * 3, constants.TILE_SIZE * 0.15 * 4, false, 2),
+				new NumberArea(this, "numberarea-pink", -constants.TILE_SIZE * 0.15 * 5, -constants.TILE_SIZE * 0.15 * 5.5,
+					constants.TILE_SIZE * 0.15 * 3, constants.TILE_SIZE * 0.15 * 4,
 					1, true, 1, this.canvas.width / 16, "black", "Times New Roman", ""),
 
-				new NumberArea(this, "numberarea-blue", -this.canvas.width * 0.015625, -this.canvas.width * 0.0859375,
-					this.canvas.width * 0.046875, this.canvas.width / 16,
+				new NumberArea(this, "numberarea-blue", -constants.TILE_SIZE * 0.15, -constants.TILE_SIZE * 0.15 * 5.5,
+					constants.TILE_SIZE * 0.15 * 3, constants.TILE_SIZE * 0.15 * 4,
 					1, true, 1, this.canvas.width / 16, "black", "Times New Roman", ""),
 
-				new NumberArea(this, "numberarea-red", this.canvas.width * 0.046875, -this.canvas.width * 0.0859375,
-					this.canvas.width * 0.046875, this.canvas.width / 16,
+				new NumberArea(this, "numberarea-red", constants.TILE_SIZE * 0.15 * 3, -constants.TILE_SIZE * 0.15 * 5.5,
+					constants.TILE_SIZE * 0.15 * 3, constants.TILE_SIZE * 0.15 * 4,
 					1, true, 1, this.canvas.width / 16, "black", "Times New Roman", ""),
 
-				new Button(this, "button-undo-1", this.canvas.width * 0.15625, new YResizeable(this, -(this.canvas.height / 2)),
-					this.canvas.width / 2 - this.canvas.width * 0.15625, new YResizeable(this, this.canvas.height), true, (button, t)=>{
+				new Button(this, "button-undo-1", constants.TILE_SIZE * 1.5, new YResizeable(this, -this.canvas.height / 2),
+					this.canvas.width / 2 - constants.TILE_SIZE * 1.5, new YResizeable(this, this.canvas.height), true, (button, t)=>{
 						button.ui.is_finished=true
 					}
 				),
-				new Button(this, "button-undo-2", -(this.canvas.width / 2), new YResizeable(this, -(this.canvas.height / 2)),
-					this.canvas.width / 2 - this.canvas.width * 0.15625, new YResizeable(this, this.canvas.height), true, (button, t)=>{
+				new Button(this, "button-undo-2", -this.canvas.width / 2, new YResizeable(this, -this.canvas.height / 2),
+					this.canvas.width / 2 - constants.TILE_SIZE * 1.5, new YResizeable(this, this.canvas.height), true, (button, t)=>{
 						button.ui.is_finished=true
 					}
 				),
-				new Button(this, "button-undo-3", -this.canvas.width * 0.15625, this.canvas.width * 0.1796875,
-					this.canvas.width * 0.3125, new YResizeable(this, this.canvas.height / 2 - this.canvas.width * 0.1796875, (resizeable) => {
-						resizeable.set_value(this.canvas.height / 2 - this.canvas.width * 0.1796875)
+				new Button(this, "button-undo-3", -constants.TILE_SIZE * 1.5, constants.TILE_SIZE * 0.15 * 11.5,
+					constants.TILE_SIZE * 3, new YResizeable(this, this.canvas.height / 2 - constants.TILE_SIZE * 0.15 * 11.5, (resizeable) => {
+						resizeable.set_value(this.canvas.height / 2 - constants.TILE_SIZE * 0.15 * 11.5)
 					}), true, (button, t)=>{
 						button.ui.is_finished=true
 					}
 				),
-				new Button(this, "button-undo-4", -this.canvas.width * 0.15625, new YResizeable(this, -(this.canvas.height / 2)),
-					this.canvas.width * 0.3125, new YResizeable(this, this.canvas.height / 2 - this.canvas.width * 0.2109375, (resizeable) => {
-						resizeable.set_value(this.canvas.height / 2 - this.canvas.width * 0.2109375)
+				new Button(this, "button-undo-4", -constants.TILE_SIZE * 1.5, new YResizeable(this, -this.canvas.height / 2),
+					constants.TILE_SIZE * 3, new YResizeable(this, this.canvas.height / 2 - constants.TILE_SIZE * 0.15 * 13.5, (resizeable) => {
+						resizeable.set_value(this.canvas.height / 2 - constants.TILE_SIZE * 0.15 * 13.5)
 					}), true, (button, t)=>{
 						button.ui.is_finished=true
 					}
@@ -318,17 +318,17 @@ export class Game {
 
 				if(!problem.get_widget("open-button").rendered){
 					if(numberarea_pink.has_focus){
-						hovered_texture.update_config(-this.canvas.width * 0.078125, -this.canvas.width * 0.0859375, null, null, true)
+						hovered_texture.update_config(-constants.TILE_SIZE * 0.15 * 5, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
 					}else if(numberarea_blue.has_focus){
-						hovered_texture.update_config(-this.canvas.width * 0.015625, -this.canvas.width * 0.0859375, null, null, true)
+						hovered_texture.update_config(-constants.TILE_SIZE * 0.15, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
 					}else if(numberarea_red.has_focus){
-						hovered_texture.update_config(this.canvas.width * 0.046875, -this.canvas.width * 0.0859375, null, null, true)
+						hovered_texture.update_config(constants.TILE_SIZE * 0.15 * 3, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
 					} else if(numberarea_pink.is_hovered) {
-						hovered_texture.update_config(-this.canvas.width * 0.078125, -this.canvas.width * 0.0859375, null, null, true)
+						hovered_texture.update_config(-constants.TILE_SIZE * 0.15 * 5, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
 					} else if(numberarea_blue.is_hovered) {
-						hovered_texture.update_config(-this.canvas.width * 0.015625, -this.canvas.width * 0.0859375, null, null, true)
+						hovered_texture.update_config(-constants.TILE_SIZE * 0.15, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
 					} else if(numberarea_red.is_hovered) {
-						hovered_texture.update_config(this.canvas.width * 0.046875, -this.canvas.width * 0.0859375, null, null, true)
+						hovered_texture.update_config(constants.TILE_SIZE * 0.15 * 3, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
 					} else {
 						hovered_texture.rendered = false
 					}
@@ -979,7 +979,7 @@ export class Game {
 			this.talkables.forEach(talkable => {talkable.render()})
 			this.get_current_map().renderGrid()
 			this.ctx.fillStyle = "black"
-			this.ctx.font = (Math.round(constants.TILE_SIZE / 2)).toString() +"px"
+			this.ctx.font = (Math.round(constants.TILE_SIZE / 2)).toString() +"px arial"
 			this.ctx.fillText(`x: ${Math.round(this.player.worldX.get())} y: ${Math.round(this.player.worldY.get())}`, 50, 50)
 		}
 
@@ -993,7 +993,7 @@ export class Game {
 	 * @param {Number} current_time 
 	 */
 	loop(current_time) {
-		if(current_time - this.last_update >= 1000/constants.GAME_TPS){
+		if(current_time - this.last_update >= 1000/constants.GAME_MAX_TPS){
 			this.update(current_time)
 			this.last_update = current_time
 		}

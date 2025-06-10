@@ -414,7 +414,7 @@ export class Player extends Entity {
 		let in_range = this.raycast_hitbox.get_colliding_hitboxes()
 		if(
 			in_range.filter(
-				hitbox => hitbox.owner instanceof Talkable
+				hitbox => hitbox.owner instanceof Talkable && hitbox.owner.is_talkable
 			).length > 0
 		){
 			this.game.tilesets["keys_tileset"].drawTile(

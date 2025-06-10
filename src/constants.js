@@ -5,7 +5,7 @@ export const config = {
 }
 
 export const constants = {
-    GAME_TPS: 128,
+    GAME_MAX_TPS: 128,
     TILE_SIZE: 128,
 
     PLAYER_COLLISION_BOX_WIDTH: 2 * 128 / 3,
