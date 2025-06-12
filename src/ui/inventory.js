@@ -29,39 +29,45 @@ export class Inventory extends Ui{
                                 this.get_widget("tooltip-title-label").rendered = false
                                 this.erase_tooltip_box()
                                 this.erase_tooltip_description()
-                                b.ui.get_widget("quest_choice_window").update_config(
+                                /** @type {Window} */
+                                let window = b.ui.get_widget("quest-choice-window")
+                                window.update_config(
                                     b.game.inputHandler.mouse_pos.x + constants.TILE_SIZE / 13,
                                     b.game.inputHandler.mouse_pos.y + constants.TILE_SIZE / 13
                                 )
-                                b.ui.get_widget("quest_choice_window").activate()
+                                window.activate()
                             } else {
                                 this.get_widget("tooltip-title-label").rendered = false
                                 this.erase_tooltip_box()
                                 this.erase_tooltip_description()
-                                b.ui.get_widget("consumable-choice-window").update_config(
+                                /** @type {Window} */
+                                let window = b.ui.get_widget("consumable-choice-window")
+                                window.update_config(
                                     b.game.inputHandler.mouse_pos.x + constants.TILE_SIZE / 13,
                                     b.game.inputHandler.mouse_pos.y + constants.TILE_SIZE / 13
                                 )
-                                b.ui.get_widget("consumable-choice-window").window_ui
+                                window.window_ui
                                     .get_widget("discard-window").window_ui
                                     .get_widget("discard-numberarea").max_char_number =
                                         itemstack.count.toString().length==0? 1: itemstack.count.toString().length
-                                b.ui.get_widget("consumable-choice-window").activate()
+                                window.activate()
                             }
                         } else {
                             if(itemstack.item.quest_item) return
                             this.get_widget("tooltip-title-label").rendered = false
                             this.erase_tooltip_box()
                             this.erase_tooltip_description()
-                            b.ui.get_widget("regular-choice-window").update_config(
+                            /** @type {Window} */
+                            let window = b.ui.get_widget("regular-choice-window")
+                            window.update_config(
                                 b.game.inputHandler.mouse_pos.x + constants.TILE_SIZE / 13,
                                 b.game.inputHandler.mouse_pos.y + constants.TILE_SIZE / 13                
                             )
-                            b.ui.get_widget("regular-choice-window").window_ui
+                            window.window_ui
                                 .get_widget("discard-window").window_ui
                                 .get_widget("discard-numberarea").max_char_number =
                                     itemstack.count.toString().length==0? 1: itemstack.count.toString().length
-                            b.ui.get_widget("regular-choice-window").activate()
+                            window.activate()
                         }
                     }
                 }
@@ -389,7 +395,7 @@ export class Inventory extends Ui{
                     }
                 }), false
             ),
-            new Window(game, "quest_choice_window",
+            new Window(game, "quest-choice-window",
                 await UiBase.create(game, "inventory_regular_discard_window.png", 0, 0, constants.TILE_SIZE, constants.TILE_SIZE, [
                     new Button(game, "use-button", -constants.TILE_SIZE / 2, -constants.TILE_SIZE * 0.75, constants.TILE_SIZE, constants.TILE_SIZE / 2, true,
                         (button, time) => {
@@ -424,7 +430,7 @@ export class Inventory extends Ui{
         ]
         for(let i=0; i<9; i++){
             widgets_array.push(await Texture.create(game, `item-texture-${i}`,
-                "hovered.png", /** The texture file here is only a placeholder */
+                "hovered.png", // The texture file here is only a placeholder
                 Inventory.get_slot_coordinates(i).x, Inventory.get_slot_coordinates(i).y,
                 slot_width, slot_width, false, 0))
         }
@@ -521,7 +527,7 @@ export class Inventory extends Ui{
     }
 
     /**
-     * Add an itemstack to the inventory.
+     * #### Add an itemstack to the inventory.
      * If something is returned, it means that the inventory is full
      * @param {ItemStack} itemstack 
      * @returns {undefined | ItemStack}

@@ -232,7 +232,7 @@ export class Game {
 		
 		/** @type {Passive} */
 		const test_ring = (await Passive.create(this, "Item_51.png", "Ring", (p, time) => {
-			// this.effects.BIG_HITBOX.apply(time, this.player, 100) it's a very annoying test effect so i'll turn that off for a bit
+			// this.effects.BIG_HITBOX.apply(time, this.player, 100) // it's a very annoying test effect so i'll turn that off for a bit
 		})).set_tooltip("This ring make a barrier arround you that allows you to touch or be touched from further away")
 		this.player.inventory.add_items(new ItemStack(test_ring, 1))
 
@@ -1020,8 +1020,8 @@ export class Game {
 	}
 
 	/**
-	 * Allows to schedule command to be executed after a certain amount of updates, 0 being the next update
-	 * ⚠ make sure that the values that you use in the command still exist after that amount of update
+	 * #### Allows to schedule command to be executed after a certain amount of updates, 0 being the next update
+	 * **⚠** make sure that the values that you use in the command still exist after that amount of update
 	 * @param {() => void} command 
 	 * @param {number} delay 
 	 */

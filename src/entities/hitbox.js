@@ -46,7 +46,8 @@ export class Hitbox {
 	}
 
 	/**
-	 * @param {Number} i - index (0, 1, 2 or 3)
+	 * @param {Number} i - index (0, 1, 2 or 3 for the coordinates of the top-left, top-right, bottom-left and bottom-right corners)
+	 * @returns {{x: Number, y: Number}}
 	 */
 	get_corner(i) {
 		switch(i) {

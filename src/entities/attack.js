@@ -175,18 +175,21 @@ export class Attack {
 
 
 /**
- * Clockwise attack
+ * #### Clockwise attack
+ * 
  * As it's impossible to have a rotated rectangle hitbox,
+ * 
  * We mimic this behaviour by having a rectangle sliding fastly
- * 			         range
- * 				 <----------->
- *             ^ +-----------+ ^
- *             | |           | | rec_width
- *             | +-----------+ v
- * slide_width |
- *             |       |
- *             |       v
- *             v
+ * 
+ *  -                    range
+ *  -                <----------->
+ *  -              ^ +-----------+ ^
+ *  -              | |           | | rec_width
+ *  -              | +-----------+ v
+ *  -  slide_width |
+ *  -              |       |
+ *  -              |       v
+ *  -              v
  */
 export class SwingingAttack extends Attack {
     /**

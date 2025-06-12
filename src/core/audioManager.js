@@ -9,7 +9,7 @@ import { config } from "../constants.js"
 
 export class AudioManager {
     constructor() {
-        /** @type {Object.<string, Object.<string, HTMLAudioElement>>} */
+        /** @type {Object<string, Object<string, HTMLAudioElement>>} */
         this.sounds = {}
         
         /** @type {HTMLAudioElement|null} */
@@ -45,7 +45,8 @@ export class AudioManager {
         audio.load()
         this.sounds[scene][key] = audio
         return audio
-    } /**
+    }
+    /**
      * Preloads multiple sounds
      * @param {string} scene - The scene/category for the sounds
      * @param {SoundConfig[]} soundList - Array of sound configurations

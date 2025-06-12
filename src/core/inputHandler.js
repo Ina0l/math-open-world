@@ -91,7 +91,10 @@ export class InputHandler {
 	}
 
     /**
+     * #### Gets the key currently pressed
+     * If more than one key is pressed at the same time, it will return the first pressed
      * 
+     * A key pressed once cannot be returned another time until it is released
      * @returns {String}
      */
     get_down_keys(){

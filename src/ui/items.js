@@ -60,7 +60,8 @@ export class Item{
     }
 
     /**
-     * 
+     * #### Mark the item as a quest item
+     * Quest items cannot be discarded by normal means
      * @returns {Item}
      */
     set_quest_item(){

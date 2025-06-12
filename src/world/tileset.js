@@ -5,7 +5,7 @@ import { Entity } from "../entities/entity.js"
 
 export class Tileset {
     /**
-     * !!! One shouldn't use the constructor to make a tileset, use the static create method instead
+     * ## One shouldn't use the constructor to make a tileset, use the static create method instead
      * @param {Game} game - The current game
      * @param {Number} img_tile_size - The size of one tile in the source image (in pixels)
      * @param {Number} screen_tile_size - The size of one tile on the canvas

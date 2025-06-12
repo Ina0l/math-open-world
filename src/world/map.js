@@ -5,7 +5,7 @@ import { Resizeable } from "../utils.js"
 
 export class Map {
 	/**
-	 * !!! One shouldn't use the constructor to make a map, use the static create method instead
+	 * ## One shouldn't use the constructor to make a map, use the static create method instead
 	 * @param {Game} game - The current game
 	 * @param {String} background - The color of the tileless background
 	 * @param {{x: Number, y: Number}} player_pos - The position of the player on this specific map
@@ -26,7 +26,8 @@ export class Map {
 	}
 
 	/**
-	 * A scenery on which are put other objects (entities, hitboxes, ...). This method is async and static
+	 * #### A scenery on which are put other objects (entities, hitboxes, ...).
+	 * This method is async and static
 	 * @param {Game} game - The current game
 	 * @param {String} src - The path to the json file used as a reference to layout the map
 	 * @param {String} background - The color of the tileless background

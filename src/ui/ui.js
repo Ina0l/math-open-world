@@ -7,7 +7,7 @@ import { Widget, Window } from "./widgets.js"
 
 export class UiBase {
     /**
-     * !!! One shouldn't use the constructor to make an ui, use the static create method instead
+     * ## One shouldn't use the constructor to make an ui, use the static create method instead
      * @param {Game} game - The current game
      * @param {Number} x 
      * @param {Number} y 
@@ -45,6 +45,10 @@ export class UiBase {
         })
         /** @type {Array<Widget>} */
         this.focused_widgets = []
+        /**
+         * When this property is marked as true, the ui will close
+         * @type {Boolean}
+         */
         this.is_finished = false
         this.widgets_states_handler = widgets_states_handler
 
@@ -208,7 +212,7 @@ export class UiBase {
 
 export class Ui extends UiBase{
     /**
-     * !!! One shouldn't use the constructor to make an ui, use the static create method instead
+     * ## One shouldn't use the constructor to make an ui, use the static create method instead
      * @param {Game} game - The current game
      * @param {Number | Resizeable | YResizeable} width - The Ui's width on the screen
      * @param {Number | Resizeable | YResizeable} height - The Ui's height on the screen

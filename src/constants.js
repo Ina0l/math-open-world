@@ -70,19 +70,26 @@ export const constants = {
     HEALTH_COLORS:['red', 'orange', 'green']
 }
 
-
-// The future has arrived
-// the format is
-// map_name: tile_number: {x: new_x, y: new_y, width: new_width, height: new_height}
-//
-// with:
-// map_name the path to the map file, String
-// tile_number the number of the tile that needs to be changed in the maps' tileset, Number
-//
-// new_x, new_y the new ccordinates of the top-left corner of the hitbox, 0 by default, Numbers
-// new_width, new_height the new width and height of the hitbox, constants.TILE_SIZE by default, Numbers
-//
-// x, y, width and height takes their default values when not specified
+/**
+ * The future has arrived
+ * 
+ * the format is:
+ * 
+ * map_name: tile_number: {x: new_x, y: new_y, width: new_width, height: new_height}
+ * 
+ * with:
+ * 
+ * map_name the path to the map file, String
+ * 
+ * tile_number the number of the tile that needs to be changed in the maps' tileset, Number
+ * 
+ * new_x, new_y the new ccordinates of the top-left corner of the hitbox, 0 by default, Numbers
+ * 
+ * new_width, new_height the new width and height of the hitbox, constants.TILE_SIZE by default, Numbers
+ * 
+ * x, y, width and height takes their default values when not specified
+ * @type {Object.<String, Object.<Number, Object.<String, Number>>>}
+*/
 export const collisions = {
     "map.json": {
         76: { width: 96, height: 112},
