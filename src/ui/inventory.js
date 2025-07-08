@@ -446,10 +446,8 @@ export class Inventory extends Ui{
 
     update(current_time) {    //update_config(x=null, y=null, width=null, height=null, rendered=null, command=null)
         super.update(current_time)
-        if (this.game.inputHandler.isKeyPressed("e") && this.game.inventory_unlocked) {
-            if (this.game.current_ui === this) {
-                this.game.current_ui = this.inventory;
-            }
+        if (this.game.inputHandler.isKeyPressed(constants.INTERACTION_KEY) && this.game.inventory_unlocked) {
+			this.game.current_ui = null
         }
         for(let i = 0; i < 9; i++){
             let slot = this.get_slot(i)
@@ -535,7 +533,6 @@ export class Inventory extends Ui{
     add_items(itemstack){
         var slot = this.get_next_empty_slot(itemstack.item)
         if(slot==-1){
-            console.log("inventory full")
             return itemstack
         }
         this.get_widget(`item-texture-${slot}`).img = this.game.items[itemstack.item.name].img
