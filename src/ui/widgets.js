@@ -90,13 +90,12 @@ export class Label extends Widget{
 
     render(){
         if(this.rendered){
-            this.game.ctx.font = `${Math.round(this.fontsize.get())}px ${this.font}`
-            this.game.ctx.fillStyle = this.textcolor
+            this.set_font()
             this.game.ctx.fillText(
                 this.text,
                 this.game.canvas.width / 2 + this.x.get() + this.ui.x_center.get(),
-                this.game.canvas.height / 2 + this.y.get() + this.fontsize.get() / 3 + this.ui.y_center.get())
-            
+                this.game.canvas.height / 2 + this.y.get() + this.fontsize.get() / 3 + this.ui.y_center.get()
+            )
             if(this.game.options_menu.debug){
                 this.game.ctx.beginPath()
                 this.game.ctx.arc(
@@ -110,11 +109,16 @@ export class Label extends Widget{
                 this.game.ctx.strokeRect(
                     this.game.canvas.width / 2 + this.x.get() + this.ui.x_center.get(),
                     this.game.canvas.height / 2 + this.y.get() - this.fontsize.get() / 2 + this.ui.y_center.get(),
-                    this.text.length * this.fontsize.get() / 2,
+                    this.game.ctx.measureText(this.text).width,
                     this.fontsize.get()
                 )
             }
         }
+    }
+
+    set_font(){
+            this.game.ctx.font = `${Math.round(this.fontsize.get())}px ${this.font}`
+            this.game.ctx.fillStyle = this.textcolor
     }
 
     center_arround(x, y){

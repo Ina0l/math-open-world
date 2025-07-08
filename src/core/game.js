@@ -219,6 +219,7 @@ export class Game {
 		)     
 		const on_colors_problem_solve =  () => {
 			colors_problem_shelf.destructor()
+			this.inventory_unlocked = true
 			// house - map
 			createSwitchHitboxes(this, 'house', 'map', {x: 3, y: 8.75, width: 1, height: 0.25}, {x: 3.5, y:8}, {x: 184, y: 93, width: 1, height: 0.25}, {x: 184.5, y: 94}, constants.UP_DIRECTION, constants.DOWN_DIRECTION, black_transition)
 		}
@@ -830,8 +831,8 @@ export class Game {
 			this.hitboxes.forEach(hitbox => {hitbox.render()})
 			this.talkables.forEach(talkable => {talkable.render()})
 			this.get_current_map().renderGrid()
-			this.ctx.fillStyle = 'black'
-			this.ctx.font = (Math.round(constants.TILE_SIZE / 2)).toString() +'px'
+			this.ctx.fillStyle = 'white'
+			this.ctx.font = (Math.round(constants.TILE_SIZE / 4)).toString() +'px arial'
 			this.ctx.fillText(`x: ${Math.round(this.player.worldX.get())} y: ${Math.round(this.player.worldY.get())}`, 50, 50)
 		}
 

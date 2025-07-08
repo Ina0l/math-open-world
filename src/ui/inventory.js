@@ -133,21 +133,20 @@ export class Inventory extends Ui{
                         } else inv.erase_tooltip_description()
 
                         if(!inv.ids.includes("tooltip-box-0-0-icon")){
-                            let widths = [item.name.length * inv.get_widget("tooltip-title-label").fontsize.get() / 2]
+                            inv.get_widget("tooltip-title-label").set_font()
+                            let widths = [inv.game.ctx.measureText(item.name).width]
                             inv.widgets.filter(
                                 widget => widget.id.endsWith("-label") && widget.id.includes("tooltip-description-")
                             ).forEach(widget => {
-                                widths.push(widget.text.length * widget.fontsize.get() / 2)
+                                widget.set_font()
+                                widths.push(widget.game.ctx.measureText(widget.text).width)
                             })
 
                             let width_nb = Math.ceil(
                                 (
-                                    Math.max(...widths) + constants.TILE_SIZE * 0.25
+                                    Math.max(...widths) + constants.TILE_SIZE * 0.5
                                 ) / inv.game.tilesets["inventory_tooltip_tileset"].screen_tile_size.get()
                             )
-                            if(width_nb * inv.game.tilesets["inventory_tooltip_tileset"].screen_tile_size.get() == Math.max(...widths) + constants.TILE_SIZE * 0.25){
-                                width_nb++
-                            }
 
                             let tooltip_height = (
                                                     item.tooltip? item.tooltip.length * (
@@ -172,21 +171,20 @@ export class Inventory extends Ui{
                                 }
                             }
                         } else {
-                            let widths = [item.name.length * inv.get_widget("tooltip-title-label").fontsize.get() / 2]
+                            inv.get_widget("tooltip-title-label").set_font()
+                            let widths = [inv.game.ctx.measureText(item.name).width]
                             inv.widgets.filter(
                                 widget => widget.id.endsWith("-label") && widget.id.includes("tooltip-description-")
                             ).forEach(widget => {
-                                widths.push(widget.text.length * widget.fontsize.get() / 2)
+                                widget.set_font()
+                                widths.push(widget.game.ctx.measureText(widget.text).width)
                             })
                             
                             let width_nb = Math.ceil(
                                 (
-                                    Math.max(...widths) + constants.TILE_SIZE * 0.25
+                                    Math.max(...widths) + constants.TILE_SIZE * 0.5
                                 ) / inv.game.tilesets["inventory_tooltip_tileset"].screen_tile_size.get()
                             )
-                            if(width_nb * inv.game.tilesets["inventory_tooltip_tileset"].screen_tile_size.get() == Math.max(...widths) + constants.TILE_SIZE * 0.25){
-                                width_nb++
-                            }
 
                             let tooltip_height = (
                                                     item.tooltip? item.tooltip.length * (
@@ -446,7 +444,7 @@ export class Inventory extends Ui{
 
     update(current_time) {    //update_config(x=null, y=null, width=null, height=null, rendered=null, command=null)
         super.update(current_time)
-        if (this.game.inputHandler.isKeyPressed(constants.INTERACTION_KEY) && this.game.inventory_unlocked) {
+        if (this.game.inputHandler.isKeyPressed(constants.INTERACTION_KEY)) {
 			this.game.current_ui = null
         }
         for(let i = 0; i < 9; i++){
