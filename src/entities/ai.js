@@ -38,7 +38,7 @@ export class Ai{
     }
 
     /**
-     * Sets the mob's behaviour when it's wandering
+     * #### Sets the mob's behaviour when it's wandering
      * @param {Number} wandering_speed - The mob's speed when it's wandering 
      * @param {Number} wandering_radius - The radius within which the mob can wander, centered arround it's initial spawn point
      * @param {Number} wandering_direction_change_time - The duration between each direction changes, at most
@@ -52,7 +52,7 @@ export class Ai{
     }
 
     /**
-     * Makes the mob follows the player everywhere
+     * #### Makes the mob follows the player everywhere
      * @param {Number} chasing_speed - The speed at which the mob follows the player
      * @returns {Ai}
      */
@@ -63,7 +63,7 @@ export class Ai{
     }
 
     /**
-     * Sets the mob's behaviour when it's attacking the player to middle ranged.
+     * #### Sets the mob's behaviour when it's attacking the player to middle ranged.
      * It tries to get close to the player, and randomly dash towards him
      * @param {Number} vision_range - The detection radius of the mob
      * @param {Number} chasing_speed - The mob's speed when it's attacking
@@ -85,7 +85,7 @@ export class Ai{
     }
 
     /**
-     * Sets the mob's behaviour when it's attacking the player to long ranged.
+     * #### Sets the mob's behaviour when it's attacking the player to long ranged.
      * It runs around the player, attacking him from afar
      * @param {Number} vision_range - The detection radius of the mob
      * @param {Number} chasing_speed - The mob's speed when it's attacking
@@ -107,7 +107,7 @@ export class Ai{
     }
 
     /**
-     * Sets the mob's behaviour when it's attacking the player to middle ranged.
+     * #### Sets the mob's behaviour when it's attacking the player to middle ranged.
      * It runs around the player, but randomly dash towards him
      * @param {Number} vision_range - The detection radius of the mob
      * @param {Number} chasing_speed - The mob's speed when it's attacking
@@ -138,7 +138,7 @@ export class Ai{
     }
 
     /**
-     * Sets the mob's attack's characteristics
+     * #### Sets the mob's attack's characteristics
      * @param {Number} attack_cooldown - The cooldown between each attacks, at most
      * @param {Number} attack_range - The distance under which the mob will start fire its attacks
      * @param {Number} projectile_speed - The shooted attack's speed
@@ -155,7 +155,7 @@ export class Ai{
 
     /**
      * Sets misc properties for the ai
-     * @param {Object<String, any>} others - An object of the additional properties
+     * @param {Object.<String, any>} others - An object of the additional properties
      * @returns {Ai}
      */
     set_others(others){

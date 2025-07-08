@@ -101,7 +101,7 @@ export class YResizeable{
 }
 
 /**
- * 
+ * Allows to test recursively any type of builtin value
  * @param {any} a 
  * @param {any} b 
  * @returns {boolean}

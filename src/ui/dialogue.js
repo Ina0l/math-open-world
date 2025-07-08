@@ -8,7 +8,7 @@ import { Button, Icon, Label } from "./widgets.js"
 export class Dialogue extends Ui{
 
     /**
-     * !!! One shouldn't use the constructor to make an dialogue, use the static create method instead
+     * ## One shouldn't use the constructor to make an dialogue, use the static create method instead
      * @param {Game} game 
      * @param {String} text 
      * @param {Tileset} arrow_tileset 
@@ -43,7 +43,8 @@ export class Dialogue extends Ui{
     }
 
     /**
-     * Method used to build an dialogue. This method is async and static
+     * #### Method used to build an dialogue.
+     * This method is async and static
      * @param {Game} game - The dialogue's game
      * @param {String} src - The dialogue's background's path
      * @param {String} text - The content of the dialogue
@@ -103,7 +104,7 @@ export class Dialogue extends Ui{
 
 export class QuestionDialogue extends Ui {
     /**
-     * !!! One shouldn't use the constructor to make an dialogue, use the static create method instead
+     * ## One shouldn't use the constructor to make an dialogue, use the static create method instead
      * @param {Game} game 
      * @param {String} text 
      * @param {Tileset} arrow_tileset 
@@ -185,7 +186,8 @@ export class QuestionDialogue extends Ui {
     }
 
     /**
-     * Method used to build an dialogue. This method is async and static
+     * #### Method used to build an dialogue.
+     * This method is async and static
      * @param {Game} game - The dialogue's game
      * @param {String} src - The dialogue's background's path
      * @param {String} text - The content of the dialogue

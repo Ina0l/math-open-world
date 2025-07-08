@@ -233,11 +233,10 @@ export class Mob extends Entity {
         }
     }
 
-	    /**
+	/**
      * Update chasing behavior
      * @param {number} current_time - Current game time
      */
-    
     updateLongrangeattacking(current_time){
         //calcule la distance au joueur, le vecteur qui va vers le joueur et celui normal. après on les additionne avec 
         //des coef puis on arrange pr que ce soit la bonne norme. si le temps de changement de direction est écoulé on le vecteur normal opposité

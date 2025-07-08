@@ -4,7 +4,7 @@ import { Tileset } from "../world/tileset.js"
 
 export class Transition{
     /**
-     * !!! One shouldn't create a transition by using this constructor, use subclass transtions instead
+     * ## One shouldn't create a transition by using this constructor, use subclass transtions instead
      * @param {Game} game - The current game
      * @param {Number} duration - The duration of the transition
      * @param {(transition: Transition) => void} on_end - The function executed when the transition is finished, allows for scripts or ui to follow
@@ -66,7 +66,7 @@ export class UnicoloreTransition extends Transition{
 
 export class ImageTransition extends Transition{
     /**
-     * !!! One shouldn't use the constructor to make a ImageTransition, use the static create method instead
+     * ## One shouldn't use the constructor to make a ImageTransition, use the static create method instead
      * @param {Game} game - The current game
      * @param {Number} duration - The duration of the transition
      * @param {String} color - The color of the screen during the transition

@@ -6,7 +6,7 @@ import { Ui } from "./ui.js"
 export class Problem extends Ui{
 
     /**
-     * !!! One shouldn't use the constructor to make a problem, use the static create method instead
+     * ## One shouldn't use the constructor to make a problem, use the static create method instead
      * @param {Game} game - The current game
      * @param {Number} width - The Problem's width on the screen
      * @param {Number} height - The Problem's height on the screen
@@ -22,7 +22,8 @@ export class Problem extends Ui{
     }
 
     /**
-     * Problems are uis which can take input and have a correct answer. The create method is async and static
+     * #### Problems are uis which can take input and have a correct answer.
+     * The create method is async and static
      * @param {Game} game - The current game
      * @param {String} src - The path to the image used as a background for the ui
      * @param {Number} width - The Problem's width on the screen
@@ -57,7 +58,7 @@ export class Problem extends Ui{
 // Haven't tested it and surely won't do it anytime soon so be careful
 export class TimedProblem extends Problem{
     /**
-     * !!! One shouldn't use the constructor to make a problem, use the static create method instead
+     * ## One shouldn't use the constructor to make a problem, use the static create method instead
      * @param {Game} game - The current game
      * @param {Number} width - The Problem's width on the screen
      * @param {Number} height - The Problem's height on the screen
@@ -76,7 +77,8 @@ export class TimedProblem extends Problem{
     }
 
     /**
-     * !!! One shouldn't use the constructor to make a problem, use the static create method instead
+     * #### Problems are uis which can take input and have a correct answer.
+     * The create method is async and static
      * @param {Game} game - The current game
      * @param {String} src - The path to the image used as a background for the ui
      * @param {Number} width - The Problem's width on the screen

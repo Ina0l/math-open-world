@@ -1,17 +1,27 @@
 import { Entity } from "./entity.js"
 
+
+/**
+ * @typedef {Object} EffectInstance
+ * 
+ * @property {Entity} entity
+ * @property {Number} origin
+ * @property {Number} duration
+ * @property {Number} last_update
+ */
+
 export class Effect {
 	/**
-	 * @param {(instance: {entity:Entity, origin:number, duration:number, last_update:number}) => void} effect
-	 * @param {(instance: {entity:Entity, origin:number, duration:number, last_update:number}) => void} start
-	 * @param {(instance: {entity:Entity, origin:number, duration:number, last_update:number}) => void} end
+	 * @param {(instance: EffectInstance) => void} effect
+	 * @param {(instance: EffectInstance) => void} start
+	 * @param {(instance: EffectInstance) => void} end
 	 * @param {Number} update_cooldown - time between each update
 	 */
 	constructor(effect, start, end, update_cooldown) {
 		this.effect = effect
 		this.start = start
 		this.end = end
-		/** @type {Array<{entity: Entity, origin: Number, duration: Number, last_update: Number}>} */
+		/** @type {Array<EffectInstance>} */
 		this.effect_instances = []
 		/** @type {Array<Entity>} */
 		this.entities = []
@@ -19,6 +29,14 @@ export class Effect {
 	}
 
 	/**
+	 * #### Applies an effect to an entity for a certain duration
+	 * When applied, the start() function is executed
+	 * 
+	 * On each update, the effect() function is executed
+	 * 
+	 * When the effect's duration has expired, the end() function is executed
+	 * 
+	 * appling the same effect twice on an entity only extends the cooldown (if the new origin + duration is longer than the previous one)
 	 * @param {Number} current
 	 * @param {Entity} entity
 	 * @param {Number} duration
@@ -26,7 +44,8 @@ export class Effect {
 	apply(current, entity, duration) {
 		const i = this.entities.indexOf(entity)
 		if (i !== -1) {
-			this.effect_instances[i].origin = current
+			if(this.effect_instances[i].origin + this.effect_instances[i].duration < current + duration)
+				this.effect_instances[i].duration = current + duration - this.effect_instances[i].origin
 			return
 			// So that applying an effect twice only prolongate the effect's duration
 		}

@@ -6,7 +6,7 @@ import { UiBase } from "./ui.js"
 
 export class Widget{
     /**
-     * !!! One shouldn't create a widget by using this constructor, use subclass widgets instead
+     * ## One shouldn't create a widget by using this constructor, use subclass widgets instead
      * @param {Game} game - The current game
      * @param {String} id - The widget's ID
      * @param {Number} x - the x coordinates of the top-left corner of the widget, relative to the ui's center
@@ -28,12 +28,36 @@ export class Widget{
         /** @type {UiBase} */
         this.ui = null
         this.rendered = rendered
+        /**
+         * Property marked as true when its widget is clicked
+         * 
+         * However only interactive widget would have it changed
+         * @type {Boolean}
+         */
         this.is_clicked = false
+        /**
+         * Property marked as true since its widget is clicked and until something else is clicked
+         * 
+         * However only interactive widget would have it changed
+         * @type {Boolean}
+         */
         this.has_focus = false
+        /**
+         * Property marked as true when the mouse is over its widget
+         * 
+         * However only interactive widget would have it changed
+         * @type {Boolean}
+         */
         this.is_hovered = false
     }
     
     render(){}
+    /**
+     * #### Method used to change the widget's fields.
+     * Left 'null' in order to not change the corresponding field
+     * 
+     * If the parameters are empty, try casting the widget to one of its subclasses (it'll still work even without it don't worry)
+     */
     update_config(){}
     update(current_time){}
 
@@ -94,15 +118,16 @@ export class Label extends Widget{
     }
 
     /**
-     * Method used to change the widget's fields, left 'null' in order to not change the corresponding field
-     * @param {Number} [x=null] - the x coordinates of the top-left corner of the widget
-     * @param {Number} [y=null] - the y coordinates of the top-left corner of the widget
-     * @param {String} [text = null] - The text content of the label
-     * @param {Boolean} [rendered=null] - Boolean refearing to if this widget should be rendered
-     * @param {Number} [layer=null] - The layer on which the widget will be rendered, higher numbers means that the widget will be rendered on top
-     * @param {Number} [fontsize = null] - Label's text's fontsize
-     * @param {String} [textcolor = null] - Label's text's color
-     * @param {String} [font = null] - Label's text's font
+     * #### Method used to change the widget's fields.
+     * Left 'null' in order to not change the corresponding field
+     * @param {?Number} [x=null] - the x coordinates of the top-left corner of the widget
+     * @param {?Number} [y=null] - the y coordinates of the top-left corner of the widget
+     * @param {?String} [text = null] - The text content of the label
+     * @param {?Boolean} [rendered=null] - Boolean refearing to if this widget should be rendered
+     * @param {?Number} [layer=null] - The layer on which the widget will be rendered, higher numbers means that the widget will be rendered on top
+     * @param {?Number} [fontsize = null] - Label's text's fontsize
+     * @param {?String} [textcolor = null] - Label's text's color
+     * @param {?String} [font = null] - Label's text's font
      */
     update_config(x=null, y=null, text=null, rendered=null, layer=null, fontsize=null, textcolor=null, font=null){
         if(x != null) this.x.set_value(x)
@@ -193,13 +218,14 @@ export class Button extends Widget{
     }
 
     /**
-     * Method used to change the widget's fields, left 'null' in order to not change the corresponding field
-     * @param {Number} [x = null] - the x coordinates of the top-left corner of the widget
-     * @param {Number} [y = null] - the y coordinates of the top-left corner of the widget
-     * @param {Number} [width = null] - The button's width
-     * @param {Number} [height = null] - The button's height
-     * @param {Boolean} [rendered = null] - Boolean refearing to if this widget should be rendered
-     * @param {(button: Button, time: Number) => void} [command = null] - Command executed when the button is being cliked, the 'button' parameter refers to the actual object, which is being clicked
+     * #### Method used to change the widget's fields.
+     * Left 'null' in order to not change the corresponding field
+     * @param {?Number} [x = null] - the x coordinates of the top-left corner of the widget
+     * @param {?Number} [y = null] - the y coordinates of the top-left corner of the widget
+     * @param {?Number} [width = null] - The button's width
+     * @param {?Number} [height = null] - The button's height
+     * @param {?Boolean} [rendered = null] - Boolean refearing to if this widget should be rendered
+     * @param {?(button: Button, time: Number) => void} [command = null] - Command executed when the button is being cliked, the 'button' parameter refers to the actual object, which is being clicked
      */
     update_config(x=null, y=null, width=null, height=null, rendered=null, command=null){
         if(x != null) this.x.set_value(x)
@@ -334,20 +360,21 @@ export class TextArea extends Widget{
     }
 
     /**
-     * Method used to change the widget's fields, left 'null' in order to not change the corresponding field
-     * @param {Number} [x = null] - the x coordinates of the top-left corner of the widget
-     * @param {Number} [y = null] - the y coordinates of the top-left corner of the widget
-     * @param {Number} [width = null] - The textarea's width
-     * @param {Number} [height = null] - The textarea's height
-     * @param {String} [content = null] - The textarea's content, what has been typed in it
-     * @param {Number} [max_char_number = null] - The maximum of character you can type in
-     * @param {Boolean} [rendered=null] - Boolean refearing to if this widget should be rendered
-     * @param {Number} [layer=null] - The layer on which the widget will be rendered, higher numbers means that the widget will be rendered on top
-     * @param {Number} [fontsize = null] - The textarea's text fontsize
-     * @param {String} [textcolor = null] - The textarea's text color
-     * @param {String} [font = null] - The textarea's text font
-     * @param {String} [blink_bar=null] - The blinking bar when the textarea is selected
-     * @param {Boolean} [usable=null] - Boolean making the textarea unwritteable if false
+     * #### Method used to change the widget's fields.
+     * Left 'null' in order to not change the corresponding field
+     * @param {?Number} [x = null] - the x coordinates of the top-left corner of the widget
+     * @param {?Number} [y = null] - the y coordinates of the top-left corner of the widget
+     * @param {?Number} [width = null] - The textarea's width
+     * @param {?Number} [height = null] - The textarea's height
+     * @param {?String} [content = null] - The textarea's content, what has been typed in it
+     * @param {?Number} [max_char_number = null] - The maximum of character you can type in
+     * @param {?Boolean} [rendered=null] - Boolean refearing to if this widget should be rendered
+     * @param {?Number} [layer=null] - The layer on which the widget will be rendered, higher numbers means that the widget will be rendered on top
+     * @param {?Number} [fontsize = null] - The textarea's text fontsize
+     * @param {?String} [textcolor = null] - The textarea's text color
+     * @param {?String} [font = null] - The textarea's text font
+     * @param {?String} [blink_bar=null] - The blinking bar when the textarea is selected
+     * @param {?Boolean} [usable=null] - Boolean making the textarea unwritteable if false
      */
     update_config(x=null, y=null, width=null, height=null, content=null, max_char_number=null, rendered=null, layer=null, fontsize=null, textcolor=null, font=null, blink_bar=null, usable=null){
         if(x != null) this.x.set_value(x)
@@ -368,7 +395,7 @@ export class TextArea extends Widget{
 
 export class NumberArea extends TextArea{
     /**
-     * Input in which you can type only digits
+     * #### Input in which you can type only digits
      * @param {Game} game - The current game
      * @param {String} id - The widget's Id
      * @param {Number} x - the x coordinates of the top-left corner of the widget
@@ -442,7 +469,8 @@ export class Icon extends Widget{
     }
 
     /**
-     * Method used to change the widget's fields, left 'null' in order to not change the corresponding field
+     * #### Method used to change the widget's fields.
+     * Left 'null' in order to not change the corresponding field
      * @param {Number} [x=null] - the x coordinates of the top-left corner of the widget
      * @param {Number} [y=null] - the y coordinates of the top-left corner of the widget
      * @param {Tileset} [tileset=null] - The tileset from which the icon's image will be rendered
@@ -462,7 +490,7 @@ export class Icon extends Widget{
 
 export class Texture extends Widget{
     /**
-     * !!! One shouldn't use the constructor to make a texture widget, use the static create method instead
+     * ## One shouldn't use the constructor to make a texture widget, use the static create method instead
      * @param {Game} game - The current game
      * @param {String} id - The widget's Id
      * @param {Number} x - the x coordinates of the top-left corner of the widget
@@ -482,7 +510,8 @@ export class Texture extends Widget{
     }
 
     /**
-     * Image widget. Unlike the Icon, it doesn't use a tileset but directly a file instead. The create method is async and static
+     * #### Image widget. Unlike the Icon, it doesn't use a tileset but directly a file instead.
+     * The create method is async and static
      * @param {Game} game - The current game
      * @param {String} id - The widget's Id
      * @param {String} src - The path to the image file used by the widget
@@ -546,7 +575,8 @@ export class Texture extends Widget{
     }
 
     /**
-     * Method used to change the widget's fields, left 'null' in order to not change the corresponding field
+     * #### Method used to change the widget's fields.
+     * Left 'null' in order to not change the corresponding field
      * @param {Number} [x = null] - the x coordinates of the top-left corner of the widget
      * @param {Number} [y = null] - the y coordinates of the top-left corner of the widget
      * @param {Number} [width = null] - The texture's width on the screen
@@ -566,10 +596,10 @@ export class Texture extends Widget{
 
 export class Window extends Widget{
     /**
-     * Widget Allowing to make Uis in an Ui, like a pop-up or a window (unexpectedly).
-     * When using the window, make sure you don't mix the 'ui' and the 'window_ui' properties
-     * The first is the ui in which the window is contained (same as every other widget).
-     * The later one is the UiBase contained inside the window
+     * #### Widget Allowing to make Uis in an Ui, like a pop-up or a window (unexpectedly).
+     * When using the window, make sure you don't mix the 'ui' and the 'window_ui' properties:
+     *  - The first is the ui in which the window is contained (same as every other widget).
+     *  - The later one is the UiBase contained inside the window
      * @param {Game} game - The current game
      * @param {String} id - The widget's Id
      * @param {UiBase} window_ui - The Ui contained in the window
@@ -605,6 +635,8 @@ export class Window extends Widget{
         if(this.ui.active_window == this){
             if(this.fast_exit){
                 if(this.game.inputHandler.isMousePressed(0) || this.game.inputHandler.isMousePressed(2)){
+                    let x = this.game.inputHandler.mouse_pos.x
+                    let y = this.game.inputHandler.mouse_pos.y
                     if(this.x.get() > x || (this.x.get() + this.width.get()) < x || this.y.get() > y || (this.y.get() + this.height.get()) < y){
                         this.window_ui.is_finished = true
                     }
@@ -615,7 +647,8 @@ export class Window extends Widget{
     }
 
     /**
-     * Method used to change the widget's fields, left 'null' in order to not change the corresponding field
+     * #### Method used to change the widget's fields,
+     * Left 'null' in order to not change the corresponding field
      * @param {Number} [x = null] - the x coordinates of the top-left corner of the widget
      * @param {Number} [y = null] - the y coordinates of the top-left corner of the widget
      * @param {Boolean} [rendered = null] - Boolean refearing to if this widget should be rendered
@@ -639,9 +672,8 @@ export class Window extends Widget{
     }
 
     /**
-     * Method used to start the rendering and the updating of the window,
-     * after a window is activated, the containing ui doesn't update until
-     * the window's ui is marked as finished
+     * #### Method used to start the rendering and the updating of the window.
+     * after a window is activated, the containing ui doesn't update until **the window's ui** is marked as finished.
      */
     activate(){
         this.ui.active_window = this
