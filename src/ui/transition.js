@@ -6,7 +6,7 @@ export class Transition{
     /**
      * ## One shouldn't create a transition by using this constructor, use subclass transtions instead
      * @param {Game} game - The current game
-     * @param {Number} duration - The duration of the transition
+     * @param {number} duration - The duration of the transition
      * @param {(transition: Transition) => void} on_end - The function executed when the transition is finished, allows for scripts or ui to follow
      */
     constructor(game, duration, on_end){
@@ -18,7 +18,7 @@ export class Transition{
 
     /**
      * 
-     * @param {Number} time 
+     * @param {number} time 
      */
     start(time){
         this.start_time = time
@@ -32,9 +32,10 @@ export class Transition{
 
     /**
      * 
-     * @param {Number} current_time 
+     * @param {number} current_time 
      */
     update(current_time){
+        if(this.start_time==null) throw new Error('this transition hasn\'t been started properly')
         if(this.start_time + this.duration < current_time){
             this.is_finished = true
             this.on_end(this)
@@ -49,12 +50,12 @@ export class UnicoloreTransition extends Transition{
     /**
      * 
      * @param {Game} game - The current game
-     * @param {Number} duration - The duration of the transition
-     * @param {String} color - The color of the screen during the transition
+     * @param {number} duration - The duration of the transition
+     * @param {string} color - The color of the screen during the transition
      * @param {(transition: UnicoloreTransition) => void} [on_end = (t) => {}] - The function executed when the transition is finished, allows for scripts or ui to follow
      */
     constructor(game, duration, color, on_end=(t) => {}){
-        super(game, duration, on_end)
+        super(game, duration, (t)=>{on_end(/**@type {UnicoloreTransition} */(t))})
         this.color = color
     }
 
@@ -68,20 +69,18 @@ export class ImageTransition extends Transition{
     /**
      * ## One shouldn't use the constructor to make a ImageTransition, use the static create method instead
      * @param {Game} game - The current game
-     * @param {Number} duration - The duration of the transition
-     * @param {String} color - The color of the screen during the transition
+     * @param {number} duration - The duration of the transition
      * @param {(t: ImageTransition) => void} [on_end=(t) => {}] - The function executed when the transition is finished, allows for scripts or ui to follow
      */
     constructor(game, duration, on_end=(t) => {}){
-        super(game, duration, on_end)
+        super(game, duration, (t)=>{on_end(/**@type {ImageTransition} */(t))})
     }
 
     /**
      * 
      * @param {Game} game - The current game
-     * @param {Number} duration - The duration of the transition
-     * @param {String} src - The source of the transition's image
-     * @param {String} color - The color of the screen during the transition
+     * @param {number} duration - The duration of the transition
+     * @param {string} src - The source of the transition's image
      * @param {(t: ImageTransition) => void} [on_end=(t) => {}] - The function executed when the transition is finished, allows for scripts or ui to follow
      * @returns {Promise<ImageTransition>}
      */
@@ -96,6 +95,10 @@ export class ImageTransition extends Transition{
         return transition
     }
 
+    /**
+     * 
+     * @param {string} src 
+     */
     async load(src){
         const img = new Image()
         img.src = src
@@ -108,6 +111,7 @@ export class ImageTransition extends Transition{
     }
 
     render(){
+        if(this.img==null) return
         this.game.ctx.drawImage(this.img, 0, 0, this.game.canvas.width, this.game.canvas.height)
     }
 }
@@ -116,15 +120,15 @@ export class AnimatedTransition extends Transition{
     /**
      * 
      * @param {Game} game - The current game
-     * @param {Number} duration - The duration of the transition
+     * @param {number} duration - The duration of the transition
      * @param {Tileset} tileset - The tileset utilized to animating the transition
-     * @param {Number} framerate - The duration of one frame
-     * @param {Array<Number>} frame_order - The order in which the frame will be rendered
+     * @param {number} framerate - The duration of one frame
+     * @param {Array<number>} frame_order - The order in which the frame will be rendered
      * @param {Transition} background - The transition used as a background for this one
      * @param {(t: AnimatedTransition) => void} [on_end=(t) => {}] - The function executed when the transition is finished, allows for scripts or ui to follow
      */
     constructor(game, duration, tileset, framerate, frame_order, background, on_end=(t) => {}){
-        super(game, duration, on_end)
+        super(game, duration, (t)=>{on_end(/**@type {AnimatedTransition} */(t))})
         this.tileset = tileset
         this.framerate = framerate
         this.frame_order = frame_order
@@ -133,6 +137,10 @@ export class AnimatedTransition extends Transition{
         this.current_frame = 0
     }
 
+    /**
+     * 
+     * @param {number} current_time 
+     */
     update(current_time){
         super.update(current_time)
         this.background.update(current_time)

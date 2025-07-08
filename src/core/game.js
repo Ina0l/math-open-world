@@ -7,12 +7,10 @@ import { Hitbox } from '../entities/hitbox.js'
 import { Attack } from '../entities/attack.js'
 import { Talkable } from '../entities/talkable.js'
 import { Effect } from '../entities/effect.js'
-import { Frog } from '../entities/mobs/frog.js'
-import { Spider } from '../entities/mobs/spider.js'
 import { Bear } from '../entities/mobs/bear.js'
 import { Problem, TimedProblem } from '../ui/problem.js'
 import { Ui } from '../ui/ui.js'
-import { Button, NumberArea, Icon, Label, TextArea, Texture } from '../ui/widgets.js'
+import { Button, NumberArea, Icon, Texture, Widget } from '../ui/widgets.js'
 import { Transition, UnicoloreTransition } from '../ui/transition.js'
 import { Dialogue, QuestionDialogue } from '../ui/dialogue.js'
 import { Resizeable, YResizeable, createSwitchHitboxes, createTpHitboxes } from '../utils.js'
@@ -28,16 +26,23 @@ export class Game {
 		this.last_update = -1000/constants.GAME_MAX_TPS
 
 		// setup canvas & context
-		/** @type {HTMLCanvasElement} */
-		this.canvas = document.getElementById('game')
+		let canvas = document.getElementById('game')
+		if(canvas instanceof HTMLCanvasElement){
+			/** @type {HTMLCanvasElement} */
+			this.canvas = canvas
+		} else throw new Error('html element "game" isn\'t a canvas')
+		
 		this.canvas.width = window.innerWidth
 		this.canvas.height = window.innerHeight
 
-		constants.TILE_SIZE = this.canvas.width / 10
-
-		/** @type {CanvasRenderingContext2D} */
-		this.ctx = this.canvas.getContext('2d')
+		let ctx = this.canvas.getContext('2d')
+		if(ctx!=null){
+			/** @type {CanvasRenderingContext2D} */
+			this.ctx = ctx
+		} else throw new Error('Failed to retrieve rendering context for the canvas')
 		this.ctx.imageSmoothingEnabled = false
+
+		constants.TILE_SIZE = this.canvas.width / 10
 
 		this.next_hitbox_id = 0
 		this.next_attack_id = 0
@@ -50,8 +55,11 @@ export class Game {
 			this.canvas.width = window.innerWidth
 			this.canvas.height = window.innerHeight
 
-			/** @type {CanvasRenderingContext2D} */
-			this.ctx = this.canvas.getContext('2d')
+			let ctx = this.canvas.getContext('2d')
+			if(ctx!=null){
+				/** @type {CanvasRenderingContext2D} */
+				this.ctx = ctx
+			} else throw new Error('Failed to retrieve rendering context for the canvas')
 			this.ctx.imageSmoothingEnabled = false
 
 			constants.TILE_SIZE = this.canvas.width / 10
@@ -82,65 +90,82 @@ export class Game {
 		/** @type {Array<Talkable>} */
 		this.talkables = []
 
-		/** @type {Item} */
+		/** @type {{[name: string]: Item}} */
 		this.items = {}
 
-		/** @type {Ui | Transition} */
+		/** @type {Ui | Transition | null} */
 		this.current_ui = null
+		/**@type {OptionsMenu?} */
+		this.options_menu = null
 
-		/** @type {{String: Map}} */
+		/** @type {{[name: string]: Map}} */
 		this.maps = {}
-
-		/** @type {{String: Tileset}} */
+		/** @type {{[name: string]: Tileset}} */
 		this.tilesets = {}
 
 		this.camera = { x: new Resizeable(this, -1000), y: new Resizeable(this, -1000)}
 
-		/**@type {OptionsMenu} */
-		this.options_menu = null
+		/**@type {Player?} */
+		this.player = null
+
+		/**@type {string?} */
+		this.current_map_name = null
+
+		// create class objects
+		this.inputHandler = new InputHandler(this)
+		this.audioManager = new AudioManager(1)
 		
 		this.effects = {
 			MOTIONLESS: new Effect(instance => {
-				instance.entity.fullSpeed = instance.new_fullSpeed
-				instance.entity.direction = instance.direction
+				if(!(instance.entity instanceof Player)) throw new TypeError('MOTIONLESS effect can only be applied on the player')
+				instance.entity.fullSpeed = instance.misc_values.new_fullSpeed
+				instance.entity.direction = instance.misc_values.direction
 			}, instance => {
-				instance.direction = instance.entity.direction
-				instance.fullSpeed = instance.entity.fullSpeed
+				if(!(instance.entity instanceof Player)) throw new TypeError('MOTIONLESS effect can only be applied on the player')
+				instance.misc_values.direction = instance.entity.direction
+				instance.misc_values.fullSpeed = instance.entity.fullSpeed
 				if(instance.entity.dashing)
-					instance.fullSpeed.set_value(constants.TILE_SIZE / 12)
-				instance.new_fullSpeed = new Resizeable(this, 0)
+					instance.misc_values.fullSpeed.set_value(constants.TILE_SIZE / 12)
+				instance.misc_values.new_fullSpeed = new Resizeable(this, 0)
 
-				instance.entity.fullSpeed = instance.new_fullSpeed
-				instance.entity.direction = instance.direction
+				instance.entity.fullSpeed = instance.misc_values.new_fullSpeed
+				instance.entity.direction = instance.misc_values.direction
 			}, instance => {
-				instance.entity.fullSpeed = instance.fullSpeed
-				instance.entity.direction = instance.direction
+				if(!(instance.entity instanceof Player)) throw new TypeError('MOTIONLESS effect can only be applied on the player')
+				instance.entity.fullSpeed = instance.misc_values.fullSpeed
+				instance.entity.direction = instance.misc_values.direction
 			}, 0),
 			ATTACK: new Effect(instance => {}, instance => {
-				instance.state = instance.entity.state
+				instance.misc_values.state = instance.entity.state
 				instance.entity.state = constants.ATTACK_STATE
 			}, instance => {
-				instance.entity.state = instance.state
+				instance.entity.state = instance.misc_values.state
 			}, 1000),
 			BLINK: new Effect(instance => {}, instance => {
-				instance.map = instance.entity.map
+				instance.misc_values.map = instance.entity.map
 				instance.entity.map = null
 			}, instance => {
-				instance.entity.map = instance.map
+				instance.entity.map = instance.misc_values.map
 			}, 0),
 			SPEED1: new Effect(instance => {
+				if(!(instance.entity instanceof Player)) throw new TypeError('With how it is actually coded, the SPEED1 effect can only be applied on the player')
 				instance.entity.fullSpeed.set_value(constants.TILE_SIZE / 6)
 			}, instance => {
-				instance.speed_before = instance.entity.fullSpeed.get()
+				if(!(instance.entity instanceof Player)) throw new TypeError('With how it is actually coded, the SPEED1 effect can only be applied on the player')
+				instance.misc_values.speed_before = instance.entity.fullSpeed.get()
 			}, instance => {
-				instance.entity.fullSpeed.set_value(instance.speed_before)
+				if(!(instance.entity instanceof Player)) throw new TypeError('With how it is actually coded, the SPEED1 effect can only be applied on the player')
+				instance.entity.fullSpeed.set_value(instance.misc_values.speed_before)
 			}, 0),
 			SPEED2: new Effect(instance => {
+				if(!(instance.entity instanceof Player)) throw new TypeError('With how it is actually coded, the SPEED2 effect can only be applied on the player')
 				instance.entity.fullSpeed.set_value(constants.TILE_SIZE / 4)
 			}, instance => {
-				instance.speed_before = instance.entity.fullSpeed.get()
+				if(!(instance.entity instanceof Player)) throw new TypeError('With how it is actually coded, the SPEED2 effect can only be applied on the player')
+				instance.misc_values.speed_before = instance.entity.fullSpeed.get()
 			}, instance => {
-				instance.entity.fullSpeed.set_value(instance.speed_before)
+				if(!(instance.entity instanceof Player)) throw new TypeError('With how it is actually coded, the SPEED2 effect can only be applied on the player')
+				instance.entity.fullSpeed.set_value(instance.misc_values.speed_before)
 			}, 0),
 			// Just so you know, that's just a joke/test huh
 			BIG_HITBOX: new Effect(instance => {},
@@ -150,19 +175,15 @@ export class Game {
 				}, instance => {
 					instance.entity.collision_hitbox.width.set_value(instance.entity.collision_hitbox.width.get() / 1.49)
 					instance.entity.collision_hitbox.height.set_value(instance.entity.collision_hitbox.height.get() / 1.49)
-				}
+				}, 0
 			)
 		}
 
-		/**@type {Array<{command: () => void, delay: Number}>} */
+		/**@type {Array<{command: () => void, delay: number}>} */
 		this.scheduled = []
 	}
 
 	async run() {
-		// create class objects
-		this.inputHandler = new InputHandler(this)
-
-		this.audioManager = new AudioManager(1)
 
 		// load assets
 		await this.audioManager.loadAudios()
@@ -185,7 +206,7 @@ export class Game {
     
 		
 		const test_consumable = await Consumable.create(this, 'Item_71.png', 'Feather',
-			(c, time) => {this.effects.SPEED2.apply(time, this.player, 10000)}
+			(c, time) => {this.effects.SPEED2.apply(time, this.get_player(), 10000)}
 		)
     	this.player.inventory.add_items(new ItemStack(test_consumable, 1))
 
@@ -197,7 +218,7 @@ export class Game {
 
 		/** @type {Consumable} */
 		const test_potion = (await Consumable.create(this, "Item_Black3.png", "Speed Potion",
-			(c, time) => {this.effects.SPEED1.apply(time, this.player, 10000)}
+			(c, time) => {this.effects.SPEED1.apply(time, this.get_player(), 10000)}
 		)).set_max_count(16)
 		.set_tooltip("Drinking this potion makes you faster for a certain period")
 		this.player.inventory.add_items(new ItemStack(test_potion, 15))
@@ -213,7 +234,7 @@ export class Game {
 				new Button(this, 'button',
 					- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
 					true, (button) => {
-						button.ui.is_finished = true
+						button.get_ui().is_finished = true
 					})
 				], (ui) => {}
 		)     
@@ -225,9 +246,9 @@ export class Game {
 		}
 		const colors_problem = await Problem.create(
 			this, 'book_ui.png', this.canvas.width * 0.34375, this.canvas.width * 0.4640625, ['3', '4', '4'], (problem) => {
-				let numberarea_pink = problem.get_widget('numberarea-pink')
-				let numberarea_blue = problem.get_widget('numberarea-blue')
-				let numberarea_red = problem.get_widget('numberarea-red')
+				let numberarea_pink = /**@type {NumberArea} */ (problem.get_widget('numberarea-pink'))
+				let numberarea_blue = /**@type {NumberArea} */ (problem.get_widget('numberarea-blue'))
+				let numberarea_red = /**@type {NumberArea} */ (problem.get_widget('numberarea-red'))
 				return [numberarea_pink.content, numberarea_blue.content, numberarea_red.content]
 			}, [
 				await Texture.create(
@@ -254,26 +275,26 @@ export class Game {
 				),
 				new Button(this, 'button-undo-1', this.canvas.width * 0.15625, new YResizeable(this, -(this.canvas.height / 2)),
 					this.canvas.width / 2 - this.canvas.width * 0.15625, new YResizeable(this, this.canvas.height), true, (button, t)=>{
-						button.ui.is_finished=true
+						button.get_ui().is_finished=true
 					}
 				),
 				new Button(this, 'button-undo-2', -(this.canvas.width / 2), new YResizeable(this, -(this.canvas.height / 2)),
 					this.canvas.width / 2 - this.canvas.width * 0.15625, new YResizeable(this, this.canvas.height), true, (button, t)=>{
-						button.ui.is_finished=true
+						button.get_ui().is_finished=true
 					}
 				),
 				new Button(this, 'button-undo-3', -this.canvas.width * 0.15625, this.canvas.width * 0.1796875,
 					this.canvas.width * 0.3125, new YResizeable(this, this.canvas.height / 2 - this.canvas.width * 0.1796875, (resizeable) => {
 						resizeable.set_value(this.canvas.height / 2 - this.canvas.width * 0.1796875)
 					}), true, (button, t)=>{
-						button.ui.is_finished=true
+						button.get_ui().is_finished=true
 					}
 				),
 				new Button(this, 'button-undo-4', -this.canvas.width * 0.15625, new YResizeable(this, -(this.canvas.height / 2)),
 					this.canvas.width * 0.3125, new YResizeable(this, this.canvas.height / 2 - this.canvas.width * 0.2109375, (resizeable) => {
 						resizeable.set_value(this.canvas.height / 2 - this.canvas.width * 0.2109375)
 					}), true, (button, t)=>{
-						button.ui.is_finished=true
+						button.get_ui().is_finished=true
 					}
 				),
 				new Button(this, 'open-button', this.canvas.width / 16, this.canvas.height / 16,
@@ -285,14 +306,10 @@ export class Game {
 				new Icon(this, 'open-icon', this.canvas.width / 16, this.canvas.height / 16, this.tilesets['next_page_arrow_tileset'], 1, false)
 			],
 			(problem, t) => {
-				/**@type {NumberArea} */
-				var numberarea_pink = problem.get_widget("numberarea-pink")
-				/**@type {NumberArea} */
-				var numberarea_blue = problem.get_widget("numberarea-blue")
-				/**@type {NumberArea} */
-				var numberarea_red = problem.get_widget("numberarea-red")
-				/**@type {Texture} */
-				var hovered_texture = problem.get_widget("hovered-texture")
+				var numberarea_pink = /**@type {NumberArea} */ (problem.get_widget("numberarea-pink"))
+				var numberarea_blue = /**@type {NumberArea} */ (problem.get_widget("numberarea-blue"))
+				var numberarea_red = /**@type {NumberArea} */ (problem.get_widget("numberarea-red"))
+				var hovered_texture = /**@type {Texture} */ (problem.get_widget("hovered-texture"))
 				
 				if(!problem.get_widget("open-button").rendered){
 					if(numberarea_pink.has_focus){
@@ -314,11 +331,11 @@ export class Game {
 					hovered_texture.rendered = false
 				}
 				if(problem.get_widget('open-button').is_hovered)
-					problem.get_widget('open-icon').tile_nb = 2
+					/** @type {Icon} */(problem.get_widget('open-icon')).tile_nb = 2
 				else
-					problem.get_widget('open-icon').tile_nb = 1
+					/** @type {Icon} */(problem.get_widget('open-icon')).tile_nb = 1
 				if (problem.solved()) {
-					problem.source.is_talkable = false
+					/** @type {Talkable} */(problem.source).is_talkable = false
 					problem.get_widget('open-button').rendered = true
 					problem.get_widget('open-icon').rendered = true
 					numberarea_pink.usable = false
@@ -348,7 +365,7 @@ export class Game {
 				if (anwser === 'No'){
 					dialogue.game.current_ui = threats_dialogue
 				}
-				dialogue.source.destroy()
+				/**@type {Hitbox} */(dialogue.source).destroy()
 			}, constants.TILE_SIZE / 5, 'black', 'arial'
 		)
 		var dialogue_test = new Hitbox(this, this.get_current_map(), 0, 4 * constants.TILE_SIZE, constants.TILE_SIZE, constants.TILE_SIZE, false, false, null, (h, c_h, t) => {
@@ -362,6 +379,7 @@ export class Game {
 		
 		// castle0
 		this.brokenLights = true
+		/**@type {Array<Widget>} */
 		let lost_lights_widgets = [
 			await Texture.create(this, "hovered-texture", "hovered.png", 0, 0,
 				constants.TILE_SIZE * 0.8, constants.TILE_SIZE * 0.8, false, 1)
@@ -371,22 +389,22 @@ export class Game {
 				lost_lights_widgets.push(new Button(this, `button-${x}-${y}`,
 					(x - 2.5) * constants.TILE_SIZE * 0.8, (y - 2.5) * constants.TILE_SIZE * 0.8,
 					constants.TILE_SIZE * 0.8, constants.TILE_SIZE * 0.8, true, (button) => {
-						let current_texture = button.ui.get_widget(`texture-${x}-${y}`)
+						let current_texture = button.get_ui().get_widget(`texture-${x}-${y}`)
 						current_texture.rendered = !current_texture.rendered
 						if(x > 0){
-							let left_texture = button.ui.get_widget(`texture-${x - 1}-${y}`)
+							let left_texture = button.get_ui().get_widget(`texture-${x - 1}-${y}`)
 							left_texture.rendered = !left_texture.rendered
 						}
 						if(x < 4){
-							let right_texture = button.ui.get_widget(`texture-${x + 1}-${y}`)
+							let right_texture = button.get_ui().get_widget(`texture-${x + 1}-${y}`)
 							right_texture.rendered = !right_texture.rendered
 						}
 						if(y > 0){
-							let top_texture = button.ui.get_widget(`texture-${x}-${y - 1}`)
+							let top_texture = button.get_ui().get_widget(`texture-${x}-${y - 1}`)
 							top_texture.rendered = !top_texture.rendered
 						}
 						if(y < 4){
-							let bottom_texture = button.ui.get_widget(`texture-${x}-${y + 1}`)
+							let bottom_texture = button.get_ui().get_widget(`texture-${x}-${y + 1}`)
 							bottom_texture.rendered = !bottom_texture.rendered
 						}
 					}))
@@ -397,7 +415,7 @@ export class Game {
 			}			
 		}
 
-		this.lost_lights_problem = await Problem.create(this, 'lost_light.png',
+		const lost_lights_problem = await Problem.create(this, 'lost_light.png',
 			constants.TILE_SIZE * 5 * 0.8, constants.TILE_SIZE * 5 * 0.8,
 			[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
 			(problem) => {
@@ -414,7 +432,7 @@ export class Game {
 				for(let x=0; x < 5; x++){
 					for(let y=0; y<5; y++){
 						if(problem.get_widget(`button-${x}-${y}`).is_hovered){
-							problem.get_widget('hovered-texture').update_config((x - 2.5) * constants.TILE_SIZE * 0.8, (y - 2.5) * constants.TILE_SIZE * 0.8, null, null, true)
+							/**@type {Texture} */(problem.get_widget('hovered-texture')).update_config((x - 2.5) * constants.TILE_SIZE * 0.8, (y - 2.5) * constants.TILE_SIZE * 0.8, null, null, true)
 							hovered = true
 						}
 					}
@@ -655,7 +673,7 @@ export class Game {
 				castle2MirrorTrigger1.on_interact = () => {
 					mirror_orientations[0] += 1
 					mirror_orientations[0] %= 4
-					if (makeLightPath()) {
+					if (/**makeLightPath()*/false) {
 						on_castle2_solve()
 					}
 				}
@@ -664,14 +682,14 @@ export class Game {
 				castle2MirrorTrigger2.on_interact = () => {
 					mirror_orientations[1] += 1
 					mirror_orientations[1] %= 4
-					if (makeLightPath()) {
+					if (/**makeLightPath()*/false) {
 						on_castle2_solve()
 					}
 				}
 
 				const castle2HardMirrorTalkable = new Talkable(this, this.maps["castle"], new Hitbox(this, this.maps["castle"], 37 * constants.TILE_SIZE, 32 * constants.TILE_SIZE, 2 * constants.TILE_SIZE, 2 * constants.TILE_SIZE), castle2HardMirrorProblem)
 
-				if (makeLightPath()) {
+				if (/**makeLightPath()*/false) {
 					on_castle2_solve()
 				}
 			}
@@ -689,21 +707,21 @@ export class Game {
 			castle2HardMirrorWidgets.push(
 				new Button(this, `button-${i}`, xPos, 0.17 * constants.TILE_SIZE, cell_size, cell_size, true,
 					(button, time) => {
-						if (button.value === undefined)
-							button.value = 0;
+						if (button.get_ui().misc_values.value === undefined)
+							button.get_ui().misc_values.value = 0;
 						else
-							button.value = (button.value + 1) % 4
+							button.get_ui().misc_values.value = (button.get_ui().misc_values.value + 1) % 4
 						for (let j = 1; j < 5; j++) {
-							button.ui.get_widget(`icon-${i}-${j}`).rendered = false
+							button.get_ui().get_widget(`icon-${i}-${j}`).rendered = false
 						}
-						button.ui.get_widget(`icon-${i}-${button.value+1}`).rendered = true
+						button.get_ui().get_widget(`icon-${i}-${button.get_ui().misc_values.value+1}`).rendered = true
 					}
 				)
 			);
 			
 			for (let j = 1; j < 5; j++) {
 				castle2HardMirrorWidgets.push(
-					new Icon(this, `icon-${i}-${j}`, xPos, 0.17 * constants.TILE_SIZE, this.tilesets['digital_locks'], j)
+					new Icon(this, `icon-${i}-${j}`, xPos, 0.17 * constants.TILE_SIZE, this.tilesets['digital_locks'], j, true)
 				)
 			}
 		}
@@ -715,13 +733,13 @@ export class Game {
 			constants.TILE_SIZE * 6, constants.TILE_SIZE * 5, 3102, (problem) => {
 				let result = 0
 				for (let i = 0; i < 4; i++)
-					result += problem.get_widget(`button-${i}`).value * Math.pow(10, i)
+					result += problem.get_widget(`button-${i}`).get_ui().misc_values.value * Math.pow(10, i)
 				return result
 			}, castle2HardMirrorWidgets, (problem, time) => {
 				if (problem.solved()) {
 					castle2HardMirrorSolved = true
 					problem.is_finished = true
-					if (makeLightPath()) {
+					if (/**makeLightPath()*/false) {
 						on_castle2_solve()
 					}
 				}
@@ -732,7 +750,7 @@ export class Game {
 			new Button(this, 'button',
 				- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
 				true, (button) => {
-					button.ui.is_finished = true
+					button.get_ui().is_finished = true
 				})
 		], (ui) => {})
 		const castle2CristalTalkable = new Talkable(this, this.maps['castle'], new Hitbox(this, this.maps['castle'], constants.TILE_SIZE * 28, constants.TILE_SIZE * 37, constants.TILE_SIZE * 2, constants.TILE_SIZE * 2), castle2CristalMessage)
@@ -743,7 +761,7 @@ export class Game {
 		// map - castle
 		createSwitchHitboxes(this, 'map', 'castle', {x: 105, y: 40, width: 2, height: 1}, {x: 106, y: 42}, {x: 12, y: 71.75, width: 1, height: 0.25}, {x: 12, y: 70}, constants.DOWN_DIRECTION, constants.UP_DIRECTION, black_transition, (game) => {
 			if (game.brokenLights)
-				game.current_ui = game.lost_lights_problem
+				game.current_ui = lost_lights_problem
 		})
 
 		// TPS
@@ -758,7 +776,7 @@ export class Game {
 
 	/**
 	 * 
-	 * @param {Number} current_time 
+	 * @param {number} current_time 
 	 * @returns 
 	 */
 	update(current_time) {
@@ -796,8 +814,8 @@ export class Game {
 
 		this.entities.forEach(entity => entity.update(current_time))
 
-		this.camera.x.set_value(this.player.worldX.get() - this.canvas.width / 2)
-		this.camera.y.set_value(this.player.worldY.get() - this.canvas.height / 2)
+		this.camera.x.set_value(this.get_player().worldX.get() - this.canvas.width / 2)
+		this.camera.y.set_value(this.get_player().worldY.get() - this.canvas.height / 2)
 
 		if (this.get_current_map().world.width.get() <= this.canvas.width) {
 			this.camera.x.set_value((this.get_current_map().world.width.get() - this.canvas.width) / 2)
@@ -815,11 +833,11 @@ export class Game {
 
 		Object.values(this.effects).forEach(effect => effect.update(current_time))
 
-		this.talkables.forEach(talkable => talkable.update(current_time))
+		this.talkables.forEach(talkable => talkable.update())
 		// talkables before inventory
 		if (this.inputHandler.isKeyPressed(constants.INTERACTION_KEY) && this.inventory_unlocked) {
             if (!this.current_ui) {
-                this.current_ui = this.player.inventory
+                this.current_ui = this.get_player().inventory
             }
         }
 	}
@@ -827,13 +845,13 @@ export class Game {
 	render() {
 		this.get_current_map().render()
 
-		if(this.options_menu.debug) {
+		if(this.get_option_menu().debug) {
 			this.hitboxes.forEach(hitbox => {hitbox.render()})
 			this.talkables.forEach(talkable => {talkable.render()})
 			this.get_current_map().renderGrid()
 			this.ctx.fillStyle = 'white'
 			this.ctx.font = (Math.round(constants.TILE_SIZE / 4)).toString() +'px arial'
-			this.ctx.fillText(`x: ${Math.round(this.player.worldX.get())} y: ${Math.round(this.player.worldY.get())}`, 50, 50)
+			this.ctx.fillText(`x: ${Math.round(this.get_player().worldX.get())} y: ${Math.round(this.get_player().worldY.get())}`, 50, 50)
 		}
 
 		if(this.current_ui){
@@ -843,7 +861,7 @@ export class Game {
 
 	/**
 	 * 
-	 * @param {Number} current_time 
+	 * @param {number} current_time 
 	 */
 	loop(current_time) {
 		if(current_time - this.last_update >= 1000/constants.GAME_MAX_TPS){
@@ -856,11 +874,14 @@ export class Game {
 
 	/**
 	 * 
-	 * @param {String} new_map_name 
+	 * @param {string} new_map_name 
 	 */
 	set_map(new_map_name){
-		this.current_map = new_map_name
-		this.map = this.maps[this.current_map]
+		if(!Object.keys(this.maps).includes(new_map_name)){
+			console.error(`the map ${new_map_name} doen't exist`)
+			return
+		}
+		this.current_map_name = new_map_name
 	}
 
 	/**
@@ -868,7 +889,7 @@ export class Game {
 	 * @returns {Map}
 	 */
 	get_current_map(){
-		return this.maps[this.current_map]
+		return this.maps[this.get_current_map_name()]
 	}
 
 	/**
@@ -879,5 +900,32 @@ export class Game {
 	 */
 	schedule(command, delay){
 		this.scheduled.push({command: command, delay: delay})
+	}
+
+	/**
+	 * 
+	 * @returns {Player}
+	 */
+	get_player(){
+		if(this.player!=null){
+			return this.player
+		} else throw new Error('The player isn\'t defined yet')
+	}
+	/**
+	 * 
+	 * @returns {OptionsMenu}
+	 */
+	get_option_menu(){
+		if(this.options_menu!=null){
+			return this.options_menu
+		} else throw new Error('The option menu isn\'t defined yet')
+	}
+	/**
+	 * @returns {string}
+	 */
+	get_current_map_name(){
+		if(this.current_map_name!=null){
+			return this.current_map_name
+		} else throw new Error('The current map isn\'t defined yet')
 	}
 }

@@ -10,8 +10,8 @@ export class Bear extends Mob {
      * 
      * @param {Game} game 
      * @param {Map} map 
-     * @param {Number} worldX 
-     * @param {Number} worldY 
+     * @param {number} worldX 
+     * @param {number} worldY 
      */
     constructor(game, map, worldX, worldY){
 		super(game, map, game.tilesets["bear"],

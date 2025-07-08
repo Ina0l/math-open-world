@@ -7,11 +7,12 @@ import { clamp, Resizeable } from '../utils.js'
 import { ProjectileAttack, SwingingAttack } from './attack.js'
 import { Inventory } from '../ui/inventory.js'
 import { Talkable } from './talkable.js'
+import { Tileset } from '../world/tileset.js'
 
-export class Player extends Entity {
+export class Player extends Entity{
 	/**
 	 * @param {Game} game - The current game
-	 * @param {TileSet} player_tileset - the tileset used for animating the player
+	 * @param {Tileset} player_tileset - the tileset used for animating the player
 	 * @param {Inventory} inventory - the player's inventory
 	 */
 	constructor(game, player_tileset, inventory) {
@@ -29,7 +30,7 @@ export class Player extends Entity {
 
 		this.inputHandler = game.inputHandler
 
-		/** @type {Entity} */
+		/** @type {Entity?} */
 		this.dragged_entity = null
 
 		this.fullSpeed = new Resizeable(game, constants.TILE_SIZE / 24)
@@ -66,6 +67,11 @@ export class Player extends Entity {
         }
     }
 
+	/**
+	 * 
+	 * @param {number} current_time 
+	 * @returns 
+	 */
 	updateDash(current_time) {
 		if (!this.dashing && this.inputHandler.isKeyDown(constants.DASH_KEY) && current_time - this.last_dash >= constants.PLAYER_DASH_COOLDOWN) {
 			this.dashing = true
@@ -123,9 +129,14 @@ export class Player extends Entity {
 				
 				const hb = new Hitbox(this.game, this.game.get_current_map(), playerWorldX, playerWorldY,
 					constants.TILE_SIZE / 2, constants.TILE_SIZE / 2, false, false)
-				new ProjectileAttack(this.game, this, this.game.get_current_map(), current_time,
-					2000, [hb], velX, velY,(e) => { e.life -= 2; this.game.effects.BLINK.apply(current_time, e, 200) }, false, this.game.tilesets["Axe"], 50,
-					{x: playerWorldX - hb.width.get() / 2, y: playerWorldY - hb.height.get() /2})
+				new ProjectileAttack(
+					this.game, this, this.game.get_current_map(), current_time,
+					2000, [hb], velX, velY, (e) => {
+						e.damage(2)
+						this.game.effects.BLINK.apply(current_time, e, 200)
+					}, false, this.game.tilesets["Axe"], 50,
+					{x: playerWorldX - hb.width.get() / 2, y: playerWorldY - hb.height.get() /2}
+				)
 			}
 
 			let mouse_input = this.inputHandler.isMousePressed(constants.MOUSE_LEFT_BUTTON)
@@ -138,10 +149,12 @@ export class Player extends Entity {
 				this.game.effects.ATTACK.apply(current_time,this, 300)
 				this.game.effects.MOTIONLESS.apply(current_time, this, 300)
 
-				new SwingingAttack(this.game, this, this.game.get_current_map(), current_time, 300,
+				new SwingingAttack(
+					this.game, this, this.game.get_current_map(), current_time, 300,
 					{x: this.worldX.get(), y: this.worldY.get()}, this.direction,
-					constants.TILE_SIZE/5, constants.TILE_SIZE, constants.TILE_SIZE/2,
-					(e) => { e.life -= 2 ; this.game.effects.BLINK.apply(current_time, e, 200)})
+					constants.TILE_SIZE/5, constants.TILE_SIZE, constants.TILE_SIZE/2, (e) => {
+						e.damage(2)
+						this.game.effects.BLINK.apply(current_time, e, 200)})
 				this.game.audioManager.playSound('game', 'slash', 0.5)
       }
 		}
@@ -149,7 +162,7 @@ export class Player extends Entity {
 
 	/**
 	 * 
-	 * @param {Number} current_time 
+	 * @param {number} current_time 
 	 */
 	update(current_time) {
 		switch(this.state) {
@@ -159,7 +172,6 @@ export class Player extends Entity {
 				this.updateWalk(current_time)
 				break
 			case constants.ATTACK_STATE:
-				this.updateAttack(current_time)
 				break
 			case constants.DRAG_STATE:
 				this.updateDrag(current_time)
@@ -218,6 +230,7 @@ export class Player extends Entity {
 	 */
 	set_map(new_map){
 		super.set_map(new_map)
+		this.raycast_hitbox.set_map(new_map)
 		if (this.dragged_entity) {
 			this.dragged_entity = null
 			this.state = constants.IDLE_STATE
@@ -231,19 +244,26 @@ export class Player extends Entity {
 
 	/**
 	 * 
-	 * @param {Number} x 
-	 * @param {Number} y 
+	 * @param {number} x 
+	 * @param {number} y 
 	 */
 	set_pos(x, y) {
-		this.worldX.set_value(clamp(x, constants.PLAYER_COMBAT_BOX_WIDTH/ 2, this.map.world.width.get() - constants.PLAYER_COMBAT_BOX_WIDTH/2))
-		this.worldY.set_value(clamp(y, constants.PLAYER_COMBAT_BOX_HEIGHT/2, this.map.world.height.get() - constants.PLAYER_COMBAT_BOX_HEIGHT/2))
+		super.set_pos(
+			clamp(x, constants.PLAYER_COMBAT_BOX_WIDTH/ 2, this.get_map().world.width.get() - constants.PLAYER_COMBAT_BOX_WIDTH/2),
+			clamp(y, constants.PLAYER_COMBAT_BOX_HEIGHT/2, this.get_map().world.height.get() - constants.PLAYER_COMBAT_BOX_HEIGHT/2)
+		)
 	}
 
+	/**
+	 * 
+	 * @param {number} current_time 
+	 * @returns 
+	 */
 	updateIdle(current_time) {
 		this.handleMoveInput()
 		this.handleAttackInput(current_time)
 
-		if (this.handleDragInput(current_time)) {
+		if (this.handleDragInput()) {
 			return
 		}
 
@@ -252,6 +272,10 @@ export class Player extends Entity {
 		super.update(current_time)
 	}
 
+	/**
+	 * 
+	 * @param {number} current_time 
+	 */
 	updateWalk(current_time) {
 		this.updateIdle(current_time) // we'll keep it as is till it breaks
 	}
@@ -275,6 +299,11 @@ export class Player extends Entity {
 		}
 	}
 
+	/**
+	 * 
+	 * @param {number} current_time 
+	 * @returns 
+	 */
 	handleAttackInput(current_time) {
 		if (this.inputHandler.isMousePressed(constants.MOUSE_RIGHT_BUTTON)) {
 			if (this.remaining_attacks>0){
@@ -297,9 +326,14 @@ export class Player extends Entity {
 			
 			const hb = new Hitbox(this.game, this.game.get_current_map(), playerWorldX, playerWorldY,
 				constants.TILE_SIZE / 2, constants.TILE_SIZE / 2, false, false)
-			new ProjectileAttack(this.game, this, this.game.get_current_map(), current_time,
-				2000, [hb], velX, velY,(e) => { e.life -= 2; this.game.effects.BLINK.apply(current_time, e, 200) }, false, this.game.tilesets["Axe"], 50,
-				{x: playerWorldX - hb.width.get() / 2, y: playerWorldY - hb.height.get() /2})
+			new ProjectileAttack(
+				this.game, this, this.game.get_current_map(), current_time,
+				2000, [hb], velX, velY, (e) => {
+					e.damage(2)
+					this.game.effects.BLINK.apply(current_time, e, 200)
+				}, false, this.game.tilesets["Axe"], 50,
+				{x: playerWorldX - hb.width.get() / 2, y: playerWorldY - hb.height.get() /2}
+			)
 			this.attack_time=current_time
 			this.remaining_attacks-=1
 
@@ -318,17 +352,19 @@ export class Player extends Entity {
 			new SwingingAttack(this.game, this, this.game.get_current_map(), current_time, 300,
 				{x: this.worldX.get(), y: this.worldY.get()}, this.direction,
 				constants.TILE_SIZE/5, constants.TILE_SIZE, constants.TILE_SIZE/2,
-				(e) => { e.life -= 2 ; this.game.effects.BLINK.apply(current_time, e, 200)})
+				(e) => { e.damage(2) ; this.game.effects.BLINK.apply(current_time, e, 200)})
 			this.game.audioManager.playSound('game', 'slash', 0.5)
 			this.state = constants.ATTACK_STATE
 		}
 	}
 
-	updateAttack(current_time) {
-		// pretty much nothing
-	}
-
+	/**
+	 * 
+	 * @param {number} current_time 
+	 * @returns 
+	 */
 	updateDrag(current_time) {
+		if(this.dragged_entity==null) throw new Error('state shouldn\'t be DRAG_STATE if the player isn\'t dragging anything')
 		if (this.inputHandler.isKeyPressed(constants.DRAG_KEY)) {
 			this.state = constants.IDLE_STATE
 			this.dragged_entity = null
@@ -395,7 +431,6 @@ export class Player extends Entity {
 			return false
 
 		for (const hb of this.raycast_hitbox.get_colliding_hitboxes(true, true)) {
-			console.log(hb)
 			if (hb.owner instanceof Entity && hb.owner.draggable) {
 				this.dragged_entity = hb.owner
 				this.state = constants.DRAG_STATE
@@ -424,7 +459,11 @@ export class Player extends Entity {
 		}
 		if(
 			in_range.filter(
-				hitbox => hitbox.owner?.draggable && !hitbox.owner.dragged
+				hitbox => {
+					if(hitbox.owner instanceof Entity){
+						hitbox.owner.draggable && !hitbox.owner.dragged
+					} else return false
+				}
 			).length > 0
 		){
 			this.game.tilesets["keys_tileset"].drawTile(
@@ -435,5 +474,54 @@ export class Player extends Entity {
 					- this.game.tilesets["keys_tileset"].screen_tile_size.get() / 2
 			)
 		}
+		this.render_cooldown(true, true)
+	}
+
+	/**
+	 * 
+	 * @param {boolean} dash 
+	 * @param {boolean} attack 
+	 */
+	render_cooldown(dash, attack){
+        if (attack==true){
+            var temp = this.game.ctx.fillStyle
+            this.game.ctx.fillStyle="blue"
+            const W = this.combat_hitbox.width.get()/(this.max_attacks)
+            for (let i=1; i<=this.remaining_attacks; i++){
+                this.roundedRect(this.worldX.get()-this.game.camera.x.get()- this.combat_hitbox.width.get()/2 + (i-1) * W,this.worldY.get()-this.game.camera.y.get()-this.combat_hitbox.height.get()/2, W-5, new Resizeable(this.game,10).get(), 3)
+            }
+            if (this.remaining_attacks!=this.max_attacks){
+                this.roundedRect(this.worldX.get()-this.game.camera.x.get()- this.combat_hitbox.width.get()/2 +this.remaining_attacks * W,this.worldY.get()-this.game.camera.y.get()-this.combat_hitbox.height.get()/2, (W-5)*(this.current_time-this.attack_time)/2000, new Resizeable(this.game,10).get(), 3)
+
+            }
+            
+            this.game.ctx.fillStyle=temp
+        }
+        if (dash==true){
+            
+            // console.log('rendering dash')
+            var temp = this.game.ctx.fillStyle
+            const HEX_START = 0XFFF2
+            const HEX_END = 0XFF00
+            
+            let dash_prog=0
+            if (this.current_time-this.last_dash > constants.PLAYER_DASH_COOLDOWN){
+                dash_prog = constants.PLAYER_DASH_COOLDOWN
+            }else{
+                dash_prog = this.current_time-this.last_dash
+            }
+            this.game.ctx.fillStyle="#"+Math.round(HEX_START - (HEX_START-HEX_END)/(constants.PLAYER_DASH_COOLDOWN/(dash_prog))).toString(16)+"00"
+            // console.log(dash_prog)
+            // this.game.ctx.fillRect(new Resizeable(this.game, 20).get(),new Resizeable(this.game, 20).get() , new Resizeable(this.game, dash_prog/10).get(), new Resizeable(this.game,10).get())
+            this.roundedRect(new Resizeable(this.game, 20).get(),new Resizeable(this.game, 20).get() , new Resizeable(this.game, dash_prog/10).get(), new Resizeable(this.game,10).get(), 3)
+            
+            this.game.ctx.fillStyle=temp
+
+        }
+    }
+
+	get_map(){
+		if(this.map==null) throw new Error('Player should always have a map, yet it doesn\'t seem to be the case here')
+		return this.map
 	}
 }

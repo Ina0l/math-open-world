@@ -5,12 +5,12 @@ import { Map } from "./world/map.js"
 import { Transition } from "./ui/transition.js"
 
 /**
- * @param {Number} x 
- * @param {Number} min 
- * @param {Number} max 
- * @returns {Number}
+ * @param {number} x 
+ * @param {number} min 
+ * @param {number} max 
+ * @returns {number}
 */
-export const clamp = (x, min, max) => {
+export function clamp(x, min, max){
 	if (x < min) return min
 	if (x > max) return max
 	return x
@@ -18,11 +18,11 @@ export const clamp = (x, min, max) => {
 
 /**
  * 
- * @param {String} str 
- * @param {Number} lenght 
- * @returns {Array<String>}
+ * @param {string} str 
+ * @param {number} lenght 
+ * @returns {Array<string>}
  */
-export const slice = (str, lenght) => {
+export function slice(str, lenght){
 	var array = []
 	var sentence = ""
 	str.split(" ").forEach(word => {
@@ -41,8 +41,8 @@ export const slice = (str, lenght) => {
 export class Resizeable{
 	/**
 	 * @param {Game} game 
-	 * @param {Number} value 
-	 * @param {(resizeable: Resizeable) => void} [resize=null] 
+	 * @param {number} value 
+	 * @param {?(resizeable: Resizeable) => void} [resize=null] 
 	 */
 	constructor(game, value, resize=null){
 		this.game = game
@@ -53,6 +53,10 @@ export class Resizeable{
 		}
 	}
 
+	/**
+	 * 
+	 * @param {number} new_value 
+	 */
 	set_value(new_value){
 		if(!isNaN(new_value / this.game.canvas.width))
 			this.value = new_value / this.game.canvas.width
@@ -61,12 +65,12 @@ export class Resizeable{
 		}
 	}
 
+	/**
+	 * 
+	 * @returns {number}
+	 */
 	get() {
 		return this.value * this.game.canvas.width
-	}
-
-	resize(){
-		this.resize(this)
 	}
 }
 
@@ -74,8 +78,8 @@ export class YResizeable{
 	/**
 	 * 
 	 * @param {Game} game 
-	 * @param {Number} value 
-	 * @param {(resizeable: YResizeable) => void} [resize=null] 
+	 * @param {number} value 
+	 * @param {?(resizeable: YResizeable) => void} [resize=null] 
 	 */
 	constructor(game, value, resize=null){
 		this.game = game
@@ -86,15 +90,22 @@ export class YResizeable{
 		}
 	}
 
+	/**
+	 * 
+	 * @param {number} new_value 
+	 */
 	set_value(new_value){
 		if(!isNaN(new_value / this.game.canvas.width))
 			this.value = new_value / this.game.canvas.height
 		else {
-			console.log(this.game)
 			throw new Error(`value ${new_value} nan`)
 		}
 	}
 
+	/**
+	 * 
+	 * @returns {number}
+	 */
 	get(){
 		return this.value * this.game.canvas.height
 	}
@@ -106,7 +117,13 @@ export class YResizeable{
  * @param {any} b 
  * @returns {boolean}
  */
-export const equality_test = (a, b) => {
+export function equality_test(a, b){
+	/**
+	 * 
+	 * @param {any} a 
+	 * @param {any} b 
+	 * @returns {boolean}
+	 */
 	const funct = (a, b) => {
 		if(a instanceof Array){
 			if(a.length == b.lenght) return false
@@ -122,51 +139,52 @@ export const equality_test = (a, b) => {
 }
 
 /**
+ * 
  * @param {Game} game
- * @param {String} mapName1
- * @param {String} mapName2
- * @param {Object} rtMap1
- * @param {Object} rtMap2
+ * @param {string} mapName1
+ * @param {string} mapName2
+ * @param {Object} boxMap1
  * @param {Object} tpMap1
+ * @param {Object} boxMap2
  * @param {Object} tpMap2
- * @param {Number} dirMap1
- * @param {Number} dirMap2
- * @param {Transition} transition
- * @param {Number} currentTime
+ * @param {number} dirMap1
+ * @param {number} dirMap2
+ * @param {Transition?} transition
+ * @param {(game: Game) => void} [addingCode1=((game: Game) => {})] 
+ * @param {(game: Game) => void} [addingCode2=((game: Game) => {})] 
  */
-export const createSwitchHitboxes = (game, mapName1, mapName2, boxMap1, tpMap1, boxMap2, tpMap2, dirMap1, dirMap2, transition=null, addingCode1 = (() => {}), addingCode2 = (() => {})) => {
+export function createSwitchHitboxes(game, mapName1, mapName2, boxMap1, tpMap1, boxMap2, tpMap2, dirMap1, dirMap2, transition=null, addingCode1 = ((game) => {}), addingCode2 = ((game) => {})){
 	new Hitbox(game, game.maps[mapName1], boxMap1.x * constants.TILE_SIZE, boxMap1.y * constants.TILE_SIZE, boxMap1.width * constants.TILE_SIZE, boxMap1.height * constants.TILE_SIZE, false, false, null, (h, c_h, t) => {
 		if(!c_h.player) return
 		game.maps[mapName1].set_player_pos({x: tpMap1.x * constants.TILE_SIZE, y: tpMap1.y * constants.TILE_SIZE})
 		game.set_map(mapName2)
-		game.player.set_map(game.maps[mapName2])
-		game.player.direction = dirMap2 
+		game.get_player().set_map(game.maps[mapName2])
+		game.get_player().direction = dirMap2 
 
 		// reset dash
-		if (game.player.dashing)
-			game.player.dash_reset = true
+		if (game.get_player().dashing)
+			game.get_player().dash_reset = true
 		else
-			game.player.last_dash = -constants.PLAYER_DASH_COOLDOWN
+			game.get_player().last_dash = -constants.PLAYER_DASH_COOLDOWN
 
+		addingCode1(game)
 
 		// transition
 		if (transition)
 			transition.start(t)
-
-		addingCode1(game)
 	}) // h1
 	new Hitbox(game, game.maps[mapName2], boxMap2.x * constants.TILE_SIZE, boxMap2.y * constants.TILE_SIZE, boxMap2.width * constants.TILE_SIZE, boxMap2.height * constants.TILE_SIZE, false, false, null, (h, c_h, t) => {
 		if(!c_h.player) return
 		game.maps[mapName2].set_player_pos({x: tpMap2.x * constants.TILE_SIZE, y: tpMap2.y * constants.TILE_SIZE})
 		game.set_map(mapName1)
-		game.player.set_map(game.maps[mapName1])
-		game.player.direction = dirMap1
+		game.get_player().set_map(game.maps[mapName1])
+		game.get_player().direction = dirMap1
 
 		// reset dash
-		if (game.player.dashing)
-			game.player.dash_reset = true
+		if (game.get_player().dashing)
+			game.get_player().dash_reset = true
 		else
-			game.player.last_dash = -constants.PLAYER_DASH_COOLDOWN
+			game.get_player().last_dash = -constants.PLAYER_DASH_COOLDOWN
 
 		addingCode2(game)
 
@@ -176,7 +194,19 @@ export const createSwitchHitboxes = (game, mapName1, mapName2, boxMap1, tpMap1, 
 	}) // h2
 }
 
-export const createTpHitboxes = (game, mapName, box1, tp1, box2, tp2, dir1, dir2, transition = null) => {
+/**
+ * 
+ * @param {Game} game 
+ * @param {string} mapName 
+ * @param {{x: number, y: number, width: number, height: number}} box1 
+ * @param {{x: number, y: number}} tp1 
+ * @param {{x: number, y: number, width: number, height: number}} box2 
+ * @param {{x: number, y: number}} tp2 
+ * @param {number} dir1 
+ * @param {number} dir2 
+ * @param {Transition?} transition 
+ */
+export function createTpHitboxes(game, mapName, box1, tp1, box2, tp2, dir1, dir2, transition = null){
 	new Hitbox(game,
 		game.maps[mapName],
 		box1.x * constants.TILE_SIZE, box1.y * constants.TILE_SIZE,
@@ -184,8 +214,8 @@ export const createTpHitboxes = (game, mapName, box1, tp1, box2, tp2, dir1, dir2
 		false, false, null,
 		(h, c_h, t) => {
 			if (!c_h.player) return
-			c_h.owner.set_pos(tp2.x * constants.TILE_SIZE, tp2.y * constants.TILE_SIZE)
-			c_h.owner.direction = dir2
+			c_h.get_owner_as_e().set_pos(tp2.x * constants.TILE_SIZE, tp2.y * constants.TILE_SIZE)
+			c_h.get_owner_as_e().direction = dir2
 			if (transition)
 				transition.start(t)
 		}
@@ -197,8 +227,8 @@ export const createTpHitboxes = (game, mapName, box1, tp1, box2, tp2, dir1, dir2
 		false, false, null,
 		(h, c_h, t) => {
 			if (!c_h.player) return
-			c_h.owner.set_pos(tp1.x * constants.TILE_SIZE, tp1.y * constants.TILE_SIZE)
-			c_h.owner.direction = dir1
+			c_h.get_owner_as_e().set_pos(tp1.x * constants.TILE_SIZE, tp1.y * constants.TILE_SIZE)
+			c_h.get_owner_as_e().direction = dir1
 			if (transition)
 				transition.start(t)
 		}
