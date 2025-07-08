@@ -76,7 +76,6 @@ export const tilesets = [
 	{ src:'cabane_tileset.png', 														img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
 	{ src:'frog.png',																	img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE / 2	},
 	{ src:'spider_tileset.png', 														img_tile_size: 100, 	screen_tile_size: (game, constants) => constants.TILE_SIZE * 4	},
-	{ src:'book_ui_focus.png',															img_tile_size: 4,  		screen_tile_size: (game, constants) => game.canvas.width / 16	},
 	{ src:'next_page_arrow_tileset.png',												img_tile_size: 24,  	screen_tile_size: (game, constants) => game.canvas.width / 20	},
 	{ src:'Kanji.png',																	img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
 	{ src:'Axe.png',																	img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},

@@ -187,7 +187,7 @@ export class Game {
 		const test_consumable = await Consumable.create(this, 'Item_71.png', 'Feather',
 			(c, time) => {this.effects.SPEED2.apply(time, this.player, 10000)}
 		)
-    this.player.inventory.add_items(new ItemStack(test_consumable, 1))
+    	this.player.inventory.add_items(new ItemStack(test_consumable, 1))
 
 		/** @type {Passive} */
 		const test_ring = (await Passive.create(this, "Item_51.png", "Ring", (p, time) => {
@@ -209,13 +209,13 @@ export class Game {
 		this.player.inventory.add_items(new ItemStack(test_key, 1))
 
     
-    const colors_problem_finishing_ui = await Ui.create(this, 'opened_book_ui.png', this.canvas.width * 0.6875, this.canvas.width * 0.453125, [
-			new Button(this, 'button',
-				- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
-				true, (button) => {
-					button.ui.is_finished = true
-				})
-			], (ui) => {}
+		const colors_problem_finishing_ui = await Ui.create(this, 'opened_book_ui.png', this.canvas.width * 0.6875, this.canvas.width * 0.453125, [
+				new Button(this, 'button',
+					- this.canvas.width / 2, - this.canvas.height / 2, this.canvas.width, this.canvas.height,
+					true, (button) => {
+						button.ui.is_finished = true
+					})
+				], (ui) => {}
 		)     
 		const on_colors_problem_solve =  () => {
 			colors_problem_shelf.destructor()
@@ -223,35 +223,42 @@ export class Game {
 			createSwitchHitboxes(this, 'house', 'map', {x: 3, y: 8.75, width: 1, height: 0.25}, {x: 3.5, y:8}, {x: 184, y: 93, width: 1, height: 0.25}, {x: 184.5, y: 94}, constants.UP_DIRECTION, constants.DOWN_DIRECTION, black_transition)
 		}
 		const colors_problem = await Problem.create(
-			this, 'book_ui.png', this.canvas.width * 0.34375, this.canvas.width * 0.453125, ['3', '4', '4'], (problem) => {
+			this, 'book_ui.png', this.canvas.width * 0.34375, this.canvas.width * 0.4640625, ['3', '4', '4'], (problem) => {
 				let numberarea_pink = problem.get_widget('numberarea-pink')
 				let numberarea_blue = problem.get_widget('numberarea-blue')
 				let numberarea_red = problem.get_widget('numberarea-red')
 				return [numberarea_pink.content, numberarea_blue.content, numberarea_red.content]
 			}, [
-				new Icon(this, 'focus-icon', -100, -110, this.tilesets['book_ui_focus'], 1, false, 0),
-				new NumberArea(this, 'numberarea-pink', -this.canvas.width * 0.078125, -this.canvas.width * 0.0859375,
-					this.canvas.width * 0.046875, this.canvas.width / 16,
-					1, true, 1, this.canvas.width / 16, 'black', 'Times New Roman', ''),
-				new NumberArea(this, 'numberarea-blue', -this.canvas.width * 0.015625, -this.canvas.width * 0.0859375,
-					this.canvas.width * 0.046875, this.canvas.width / 16,
-					1, true, 1, this.canvas.width / 16, 'black', 'Times New Roman', ''),
-				new NumberArea(this, 'numberarea-red', this.canvas.width * 0.046875, -this.canvas.width * 0.0859375,
-					this.canvas.width * 0.046875, this.canvas.width / 16,
-					1, true, 1, this.canvas.width / 16, 'black', 'Times New Roman', ''),
+				await Texture.create(
+					this, "hovered-texture", "hovered.png", 0, 0,
+					this.canvas.width * 0.34375 / 20 * 3,
+					this.canvas.width * 0.34375 / 20 * 4,
+					false, 0
+				),
+				new NumberArea(
+					this, 'numberarea-pink', -this.canvas.width * 0.34375 / 20 * 5, -this.canvas.width * 0.34375 / 20 * 5.5,
+					this.canvas.width * 0.34375 / 20 * 3,
+					this.canvas.width * 0.34375 / 20 * 4,
+					1, true, 1, this.canvas.width / 16, 'black', 'Times New Roman', ''
+				),
+				new NumberArea(this, 'numberarea-blue', -this.canvas.width * 0.34375 / 20, -this.canvas.width * 0.34375 / 20 * 5.5,
+					this.canvas.width * 0.34375 / 20 * 3,
+					this.canvas.width * 0.34375 / 20 * 4,
+					1, true, 1, this.canvas.width / 16, 'black', 'Times New Roman', ''
+				),
+				new NumberArea(this, 'numberarea-red', this.canvas.width * 0.34375 / 20 * 3, -this.canvas.width * 0.34375 / 20 * 5.5,
+					this.canvas.width * 0.34375 / 20 * 3,
+					this.canvas.width * 0.34375 / 20 * 4,
+					1, true, 1, this.canvas.width / 16, 'black', 'Times New Roman', ''
+				),
 				new Button(this, 'button-undo-1', this.canvas.width * 0.15625, new YResizeable(this, -(this.canvas.height / 2)),
 					this.canvas.width / 2 - this.canvas.width * 0.15625, new YResizeable(this, this.canvas.height), true, (button, t)=>{
 						button.ui.is_finished=true
-						if (button.ui.solved()) {
-						}
 					}
 				),
 				new Button(this, 'button-undo-2', -(this.canvas.width / 2), new YResizeable(this, -(this.canvas.height / 2)),
 					this.canvas.width / 2 - this.canvas.width * 0.15625, new YResizeable(this, this.canvas.height), true, (button, t)=>{
 						button.ui.is_finished=true
-						if (button.ui.solved())
-							on_colors_problem_solve()
-							
 					}
 				),
 				new Button(this, 'button-undo-3', -this.canvas.width * 0.15625, this.canvas.width * 0.1796875,
@@ -259,8 +266,6 @@ export class Game {
 						resizeable.set_value(this.canvas.height / 2 - this.canvas.width * 0.1796875)
 					}), true, (button, t)=>{
 						button.ui.is_finished=true
-						if (button.ui.solved())
-							on_colors_problem_solve()
 					}
 				),
 				new Button(this, 'button-undo-4', -this.canvas.width * 0.15625, new YResizeable(this, -(this.canvas.height / 2)),
@@ -268,38 +273,39 @@ export class Game {
 						resizeable.set_value(this.canvas.height / 2 - this.canvas.width * 0.2109375)
 					}), true, (button, t)=>{
 						button.ui.is_finished=true
-						if (button.ui.solved())
-							on_colors_problem_solve()
 					}
 				),
 				new Button(this, 'open-button', this.canvas.width / 16, this.canvas.height / 16,
 					this.tilesets['next_page_arrow_tileset'].screen_tile_size.get(), this.tilesets['next_page_arrow_tileset'].screen_tile_size.get(), false, (button, t)=>{
 						button.game.current_ui = colors_problem_finishing_ui
-						if (button.ui.solved())
-							on_colors_problem_solve()
+						on_colors_problem_solve()
 					}
 				),
 				new Icon(this, 'open-icon', this.canvas.width / 16, this.canvas.height / 16, this.tilesets['next_page_arrow_tileset'], 1, false)
 			],
 			(problem, t) => {
+				/**@type {NumberArea} */
 				var numberarea_pink = problem.get_widget("numberarea-pink")
+				/**@type {NumberArea} */
 				var numberarea_blue = problem.get_widget("numberarea-blue")
+				/**@type {NumberArea} */
 				var numberarea_red = problem.get_widget("numberarea-red")
+				/**@type {Texture} */
 				var hovered_texture = problem.get_widget("hovered-texture")
-        
+				
 				if(!problem.get_widget("open-button").rendered){
 					if(numberarea_pink.has_focus){
-						hovered_texture.update_config(-constants.TILE_SIZE * 0.15 * 5, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
+						hovered_texture.update_config(-this.canvas.width * 0.34375 / 20 * 5, -this.canvas.width * 0.34375 / 20 * 5.5, null, null, true)
 					}else if(numberarea_blue.has_focus){
-						hovered_texture.update_config(-constants.TILE_SIZE * 0.15, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
+						hovered_texture.update_config(-this.canvas.width * 0.34375 / 20, -this.canvas.width * 0.34375 / 20 * 5.5, null, null, true)
 					}else if(numberarea_red.has_focus){
-						hovered_texture.update_config(constants.TILE_SIZE * 0.15 * 3, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
+						hovered_texture.update_config(this.canvas.width * 0.34375 / 20 * 3, -this.canvas.width * 0.34375 / 20 * 5.5, null, null, true)
 					} else if(numberarea_pink.is_hovered) {
-						hovered_texture.update_config(-constants.TILE_SIZE * 0.15 * 5, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
+						hovered_texture.update_config(-this.canvas.width * 0.34375 / 20 * 5, -this.canvas.width * 0.34375 / 20 * 5.5, null, null, true)
 					} else if(numberarea_blue.is_hovered) {
-						hovered_texture.update_config(-constants.TILE_SIZE * 0.15, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
+						hovered_texture.update_config(-this.canvas.width * 0.34375 / 20, -this.canvas.width * 0.34375 / 20 * 5.5, null, null, true)
 					} else if(numberarea_red.is_hovered) {
-						hovered_texture.update_config(constants.TILE_SIZE * 0.15 * 3, -constants.TILE_SIZE * 0.15 * 5.5, null, null, true)
+						hovered_texture.update_config(this.canvas.width * 0.34375 / 20 * 3, -this.canvas.width * 0.34375 / 20 * 5.5, null, null, true)
 					} else {
 						hovered_texture.rendered = false
 					}

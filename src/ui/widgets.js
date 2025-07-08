@@ -117,6 +117,12 @@ export class Label extends Widget{
         }
     }
 
+    center_arround(x, y){
+        this.x.set_value(x - this.game.ctx.measureText(this.text).width / 2)
+        this.y.set_value(y)
+        return this
+    }
+
     /**
      * #### Method used to change the widget's fields.
      * Left 'null' in order to not change the corresponding field
