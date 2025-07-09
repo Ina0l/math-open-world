@@ -1,3 +1,4 @@
+//@ts-check
 import { Hitbox } from './hitbox.js'
 import { Entity } from './entity.js'
 import { Game } from '../core/game.js'

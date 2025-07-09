@@ -1,3 +1,4 @@
+//@ts-check
 import { constants, config } from "../constants.js";
 import { Game } from "../core/game.js";
 import { clamp } from "../utils.js";

@@ -1,3 +1,4 @@
+//@ts-check
 import { Entity } from "./entity.js"
 import { constants } from "../constants.js"
 import { clamp, Resizeable } from "../utils.js"

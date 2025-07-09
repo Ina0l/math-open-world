@@ -1,3 +1,4 @@
+//@ts-check
 import { Mob } from "../mob.js"
 import { Hitbox } from "../hitbox.js"
 import { constants } from "../../constants.js"

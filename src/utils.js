@@ -1,7 +1,7 @@
+//@ts-check
 import { constants } from "./constants.js"
 import { Game } from "./core/game.js"
 import { Hitbox } from "./entities/hitbox.js"
-import { Map } from "./world/map.js"
 import { Transition } from "./ui/transition.js"
 
 /**

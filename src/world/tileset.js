@@ -1,3 +1,4 @@
+//@ts-check
 import { Game } from "../core/game.js"
 import { config, constants, tilesets } from "../constants.js"
 import { Resizeable, YResizeable } from "../utils.js"

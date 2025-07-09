@@ -1,3 +1,4 @@
+//@ts-check
 import { constants } from '../constants.js'
 import { AudioManager } from './audioManager.js'
 import { InputHandler } from './inputHandler.js'

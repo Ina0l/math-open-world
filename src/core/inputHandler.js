@@ -1,4 +1,4 @@
-import { constants } from "../constants.js"
+//@ts-check
 import { Game } from "./game.js"
 
 export class InputHandler {

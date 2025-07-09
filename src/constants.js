@@ -1,3 +1,4 @@
+//@ts-check
 export const config = {
 	MAP_DIR: "./assets/maps/",
 	IMG_DIR: "./assets/images/",

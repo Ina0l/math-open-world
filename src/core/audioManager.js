@@ -1,3 +1,4 @@
+//@ts-check
 import { config, audios } from '../constants.js'
 import { clamp } from '../utils.js'
 

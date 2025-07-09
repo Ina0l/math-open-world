@@ -1,3 +1,4 @@
+//@ts-check
 import { config } from "../constants.js"
 import { Game } from "../core/game.js"
 import { Tileset } from "../world/tileset.js"

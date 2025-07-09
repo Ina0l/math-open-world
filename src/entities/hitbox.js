@@ -1,3 +1,4 @@
+//@ts-check
 import { Game } from "../core/game.js"
 import { Map } from "../world/map.js"
 import { Attack } from "./attack.js"

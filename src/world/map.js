@@ -1,3 +1,4 @@
+//@ts-check
 import { Game } from "../core/game.js"
 import { Hitbox } from "../entities/hitbox.js"
 import { constants, config, maps } from "../constants.js"

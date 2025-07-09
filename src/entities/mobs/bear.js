@@ -1,3 +1,4 @@
+//@ts-check
 import { constants } from "../../constants.js"
 import { Game } from "../../core/game.js"
 import { Map } from "../../world/map.js"
