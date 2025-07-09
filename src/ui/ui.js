@@ -232,7 +232,7 @@ export class UiBase {
     }
 }
 
-// @ts-ignore
+//@ts-ignore
 export class Ui extends UiBase{
     /**
      * ## One shouldn't use the constructor to make an ui, use the static create method instead

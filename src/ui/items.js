@@ -82,7 +82,7 @@ export class Item{
     }
 }
 
-// @ts-ignore
+//@ts-ignore
 export class Consumable extends Item{
     /**
      * 
@@ -147,7 +147,7 @@ export class Consumable extends Item{
     }
 }
 
-// @ts-ignore
+//@ts-ignore
 export class Passive extends Item{
     /**
      * 

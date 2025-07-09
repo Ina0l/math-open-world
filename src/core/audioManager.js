@@ -8,7 +8,7 @@ class AudioManager {
 		this.musicVolume = musicVolume
 		this.muted = muted
 
-		// @ts-ignore
+		//@ts-ignore
 		this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
 		/**@type {Map<string, Map<string, {buffer: AudioBuffer, loop: boolean}>>} */
 		this.sounds = new Map()

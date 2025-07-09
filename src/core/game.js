@@ -674,7 +674,8 @@ export class Game {
 				castle2MirrorTrigger1.on_interact = () => {
 					mirror_orientations[0] += 1
 					mirror_orientations[0] %= 4
-					if (/**makeLightPath()*/false) {
+					//@ts-ignore
+					if (makeLightPath()) {
 						on_castle2_solve()
 					}
 				}
@@ -683,14 +684,16 @@ export class Game {
 				castle2MirrorTrigger2.on_interact = () => {
 					mirror_orientations[1] += 1
 					mirror_orientations[1] %= 4
-					if (/**makeLightPath()*/false) {
+					//@ts-ignore
+					if (makeLightPath()) {
 						on_castle2_solve()
 					}
 				}
 
 				const castle2HardMirrorTalkable = new Talkable(this, this.maps["castle"], new Hitbox(this, this.maps["castle"], 37 * constants.TILE_SIZE, 32 * constants.TILE_SIZE, 2 * constants.TILE_SIZE, 2 * constants.TILE_SIZE), castle2HardMirrorProblem)
 
-				if (/**makeLightPath()*/false) {
+				//@ts-ignore
+				if (makeLightPath()) {
 					on_castle2_solve()
 				}
 			}
@@ -740,7 +743,8 @@ export class Game {
 				if (problem.solved()) {
 					castle2HardMirrorSolved = true
 					problem.is_finished = true
-					if (/**makeLightPath()*/false) {
+					//@ts-ignore
+					if (makeLightPath()) {
 						on_castle2_solve()
 					}
 				}
