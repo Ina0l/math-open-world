@@ -5,9 +5,7 @@ import { Hitbox } from "./entities/hitbox.js"
 import { Transition } from "./ui/transition.js"
 
 const canvas = document.createElement("canvas")
-canvas.setAttribute("willReadFrequently", "true")
-console.log(canvas)
-let ctx = canvas.getContext("2d")
+let ctx = canvas.getContext("2d", {willReadFrequently: true})
 if(ctx==null) throw new Error("context was null for some reason")
 export const not_displayed_ctx = ctx
 

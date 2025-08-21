@@ -15,12 +15,13 @@ export class Map {
 	 */
 	constructor(game, background, playerSpawnPos, collisions, blockDepthOrder) {
 		this.game = game
+		/**@type {Array<{firstgid: number, source: string}>} */
 		this.tilesets = []
 		this.ground = []
 		this.blocks = []
 		this.perspective = []
-
-		this.world = {}
+		/**@type {{width: Resizeable, height: Resizeable}} */
+		this.world = {width: new Resizeable(game, 0), height: new Resizeable(game, 0)}
 		this.background = background
 		this.player_pos = {
 			x: new Resizeable(game, playerSpawnPos.x * constants.TILE_SIZE),
@@ -32,6 +33,9 @@ export class Map {
 		this.last_frame_time = 0
 		this.current_frame = 0
 		this.animation_tilesets = {}
+
+		/**@type {Array<{r: number, g: number, b: number}>} */
+		this.topmost_average = []
 	}
 
 	/**
@@ -78,8 +82,8 @@ export class Map {
 		const body = await response.json()
 		this.width = body.width
 		this.height = body.height
-		this.world.width = new Resizeable(this.game, this.width * constants.TILE_SIZE)
-		this.world.height = new Resizeable(this.game, this.height * constants.TILE_SIZE)
+		this.world.width.set_value(this.width * constants.TILE_SIZE)
+		this.world.height.set_value(this.height * constants.TILE_SIZE)
 
 		this.animated_tiles = body.animated || {}
 		this.framerate = null
@@ -144,6 +148,42 @@ export class Map {
 				throw new Error(`Tileset ${tileset.source} not loaded`)
 			}
 			this.tilesets.push(tileset)
+		}
+
+		/**@type {Array<number>} */
+		let topmost_tiles = []
+		if(this.perspective.length > 0){
+			topmost_tiles = this.perspective[0].data.slice(0)
+		} else if(this.blocks.length > 0){
+			topmost_tiles = this.blocks[0].data.slice(0)
+		} else if(this.ground.length > 0){
+			topmost_tiles = this.ground[0].data.slice(0)
+		}
+		for(let layer_type of ["perspective", "blocks", "ground"]){
+			for(let layer of this[layer_type]){
+				for(let i=0; i < (layer.width * layer.height); i++){
+					if(topmost_tiles[i] <= 0){
+						topmost_tiles[i] = layer.data[i]
+					}
+				}
+			}
+		}
+
+		/**@type {{[tile_nb: number]: {r: number, g: number, b: number}}} */
+		let known_averages = {}
+
+		for(let tile_nb of topmost_tiles){
+			let tileset = this.getTileset(tile_nb)
+			if(!tileset){
+				this.topmost_average.push({r: 0, g: 0, b: 0})
+				continue
+			} else if(known_averages[tile_nb]){
+				this.topmost_average.push(known_averages[tile_nb])
+			} else {
+				let color = this.game.tilesets[tileset.source].get_tile_average(tile_nb - tileset.firstgid + 1)
+				this.topmost_average.push(color)
+				known_averages[tile_nb] = color
+			}
 		}
 	}
 
@@ -285,8 +325,8 @@ export class Map {
 			const frame = this.animated_tiles[tileNum].frameorder[frameIndex]
 			this.animation_tilesets[tileNum]?.drawTile(frame, screenX, screenY)
 		} else {
-			const ts = this.getTileset(tileNum)
-			if (!ts) return
+			let ts = this.getTileset(tileNum)
+			if(!ts) return
 			this.game.tilesets[ts.source].drawTile(tileNum - ts.firstgid + 1, screenX, screenY)
 		}
 	}
@@ -322,11 +362,15 @@ export class Map {
 
 	/**
 	 * @param {number} tileNum
+	 * @returns {{firstgid: number, source: string}?}
 	 */
 	getTileset(tileNum) {
-		for (let i = this.tilesets.length-1;i >= 0; i--) {
-			if (tileNum >= this.tilesets[i].firstgid) return this.tilesets[i]
+		for (let i = this.tilesets.length-1; i>= 0; i--) {
+			if (tileNum >= this.tilesets[i].firstgid){
+				return this.tilesets[i]
+			}
 		}
+		return null
 	}
 
 	/**
@@ -363,12 +407,8 @@ export class Map {
 	 * @param {Array<number>} layers
 	 */
 	replaceTileRectAt(sx, sy, w, h, tileNum, layers) {
-		const tileset = this.getTileset(tileNum)
-		if (!tileset) {
-			console.error(`No tileset found for tile number ${tileNum}`)
-			return
-		}
-
+		let tileset = this.getTileset(tileNum)
+		if(!tileset) throw new Error(`no tile found for n ${tileNum}`)
 		let tilesetColumns = this.game.tilesets[tileset.source].get_tilesPerRow()
 		
 		for (let y = 0; y < h; y++) {
@@ -384,5 +424,4 @@ export class Map {
 			}
 		}
 	}
-
 }

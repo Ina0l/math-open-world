@@ -26,8 +26,6 @@ export class Tileset {
         this.tilesPerRow = null
         /**@type {string} */
         this.source = "source not defined"
-        /**@type {Array<{r: number; g: number; b: number}>} */
-        this.average_colors = []
     }
 
     /**
@@ -41,7 +39,6 @@ export class Tileset {
      * @throws {Error} - If the image fails to load
      */
     static async create(game, src, img_tile_size, screen_tile_size, tileset_spacing) {
-        console.log("starting to create tileset "+src.split(".").slice(0, -1).join("."))
         const tileset = new Tileset(game, img_tile_size, screen_tile_size, tileset_spacing)
         try {
             await tileset.load(config.IMG_DIR + src)
@@ -56,11 +53,6 @@ export class Tileset {
 			(tileset.get_img().width + tileset_spacing) / (tileset.img_tile_size + tileset_spacing)
 		)
         game.tilesets[tileset.source] = tileset
-
-        for(let i=0; i<tileset.tiles_length; i++){
-            tileset.average_colors.push(tileset.get_tile_average(i))
-        }
-        console.log(`tileset ${tileset.source} creation ended`)
 
         return tileset
     }
@@ -194,19 +186,24 @@ export class Tileset {
         )
 
         let color_sum = {r: 0, g: 0, b: 0}
+        let transparent_tiles = 0
 
         for(let x = 0; x<this.img_tile_size; x++){
             for(let y = 0; y<this.img_tile_size; y++){
                 let color_data = not_displayed_ctx.getImageData(x, y, 1, 1).data
+                if(color_data[3]<16){
+                    transparent_tiles++
+                    continue
+                }
                 for(let i = 0; i<3; i++){
                     color_sum[["r", "g", "b"][i]] += color_data[i]
                 }
             }
         }
-        return {
-            r: color_sum.r/(this.img_tile_size**2),
-            g: color_sum.g/(this.img_tile_size**2),
-            b: color_sum.b/(this.img_tile_size**2)
+        return (transparent_tiles==this.img_tile_size**2)? {r: 0, g: 0, b: 0}: {
+            r: color_sum.r/(this.img_tile_size**2 - transparent_tiles),
+            g: color_sum.g/(this.img_tile_size**2 - transparent_tiles),
+            b: color_sum.b/(this.img_tile_size**2 - transparent_tiles),
         }
     }
 }
