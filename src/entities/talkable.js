@@ -1,3 +1,4 @@
+//@ts-check
 import { Game } from "../core/game.js"
 import { Map } from "../world/map.js"
 import { Ui } from "../ui/ui.js"
@@ -11,10 +12,10 @@ export class Talkable{
      * @param {Game} game - The current game
      * @param {Map} map - The map in which the talkable shows up
      * @param {Hitbox} hitbox - the hitbox used for detecting when the player is facing the talkable
-     * @param {Ui} ui - The ui activated by this talkable
-     * @param {Entity} [entity=null] - The entity which the talkable should follow, left empty to make the talkable motionless
+     * @param {Ui?} [ui=null] - The ui activated by this talkable
+     * @param {Entity?} [entity=null] - The entity which the talkable should follow, left empty to make the talkable motionless
      */
-    constructor(game, map, hitbox, ui, entity=null){
+    constructor(game, map, hitbox, ui=null, entity=null){
         this.game = game
         this.map = map
         this.hitbox = hitbox
@@ -42,8 +43,8 @@ export class Talkable{
 		}
 	}
 
-    update(current_time){
-        if(this.game.inputHandler.isKeyPressed(constants.INTERACTION_KEY) && this.game.player.raycast_hitbox.is_colliding(this.hitbox)) {
+    update(){
+        if(this.game.inputHandler.isKeyPressed(constants.INTERACTION_KEY) && this.game.get_player().raycast_hitbox.is_colliding(this.hitbox)) {
 			this.on_interact()
 			this.game.inputHandler.keys_pressed[constants.INTERACTION_KEY] = false
         }

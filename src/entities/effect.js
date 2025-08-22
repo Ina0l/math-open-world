@@ -1,3 +1,4 @@
+//@ts-check
 import { Entity } from "./entity.js"
 
 
@@ -5,9 +6,10 @@ import { Entity } from "./entity.js"
  * @typedef {Object} EffectInstance
  * 
  * @property {Entity} entity
- * @property {Number} origin
- * @property {Number} duration
- * @property {Number} last_update
+ * @property {number} origin
+ * @property {number} duration
+ * @property {number} last_update
+ * @property {{[key: string]: any}} misc_values
  */
 
 export class Effect {
@@ -15,7 +17,7 @@ export class Effect {
 	 * @param {(instance: EffectInstance) => void} effect
 	 * @param {(instance: EffectInstance) => void} start
 	 * @param {(instance: EffectInstance) => void} end
-	 * @param {Number} update_cooldown - time between each update
+	 * @param {number} update_cooldown - time between each update
 	 */
 	constructor(effect, start, end, update_cooldown) {
 		this.effect = effect
@@ -37,9 +39,9 @@ export class Effect {
 	 * When the effect's duration has expired, the end() function is executed
 	 * 
 	 * appling the same effect twice on an entity only extends the cooldown (if the new origin + duration is longer than the previous one)
-	 * @param {Number} current
+	 * @param {number} current
 	 * @param {Entity} entity
-	 * @param {Number} duration
+	 * @param {number} duration
 	 */
 	apply(current, entity, duration) {
 		const i = this.entities.indexOf(entity)
@@ -55,11 +57,16 @@ export class Effect {
 			origin: current,
 			duration: duration,
 			last_update: current - this.update_cooldown,
+			misc_values: {}
 		})
 		this.entities.push(entity)
 		this.start(this.effect_instances[this.effect_instances.length-1])
 	}
 
+	/**
+	 * 
+	 * @param {number} current 
+	 */
 	update(current) {
 		for (let i = 0; i < this.effect_instances.length; i++) {
 			let effect_instance = this.effect_instances[i]

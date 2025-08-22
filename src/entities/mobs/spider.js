@@ -1,9 +1,11 @@
+//@ts-check
 import { Mob } from "../mob.js"
 import { Hitbox } from "../hitbox.js"
 import { constants } from "../../constants.js"
-import { Resizeable } from "../../utils.js"
 import { ProjectileAttack } from "../attack.js"
 import { Ai } from "../ai.js"
+import { Game } from "../../core/game.js"
+import { Map } from "../../world/map.js"
 
 /**
  * Spider enemy that chases player and periodically shoots projectiles
@@ -64,7 +66,7 @@ export class Spider extends Mob {
             this.game.player.worldY.get() - this.worldY.get()
         )
 
-        if (distance <= this.ai.attack_range.get()) {
+        if (distance <= this.ai.get_attack_range().get()) {
             const [dirX, dirY] = this.getShootingDirections()
             this.shoot(dirX, dirY, current_time)
             this.ai.last_attack = current_time
@@ -76,11 +78,11 @@ export class Spider extends Mob {
      * @returns {[number, number]}
      */
     getShootingDirections() {
-        const dx = this.game.player.worldX.get() - this.worldX.get()
-        const dy = this.game.player.worldY.get() - this.worldY.get()
+        const dx = this.game.get_player().worldX.get() - this.worldX.get()
+        const dy = this.game.get_player().worldY.get() - this.worldY.get()
         const distance = Math.max(1, Math.hypot(dx, dy))
         
-        const speed = this.ai.projectile_speed.get()
+        const speed = this.ai.get_projectile_speed().get()
         return [
             dx / distance * speed,
             dy / distance * speed
@@ -115,7 +117,7 @@ export class Spider extends Mob {
             [hb], 
             velX, 
             velY, 
-            (entity) => { entity.life -= 2 },
+            (entity) => { entity.damage(2) },
             false,
             this.game.tilesets["Axe"], 
             50,

@@ -2,6 +2,10 @@
 #TODO: deal with the apothicaire
 #FIX: Stripped rendering effect (strange lines behaviour)
 
+#TODO: deal with the '//@ts-ignore's in the game.js as well as in the audioManager.js
+#      remove them and then fix the error that shows up
+#      Well, the first '//@ts-ignore' in the audioManager (line 11) cannot be fixed so let this one be
+
 # Maybe we could separate collision hitboxes and action hitboxes by making sub-classes
 # As collision hitboxes' commands are not meant to ever be triggered
 #     and action hitboxes gets no benefits in also being a collision one

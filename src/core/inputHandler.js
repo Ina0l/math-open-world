@@ -1,4 +1,4 @@
-import { constants } from "../constants.js"
+//@ts-check
 import { Game } from "./game.js"
 
 export class InputHandler {
@@ -10,8 +10,8 @@ export class InputHandler {
         this.keys_down = {}
         this.keys_pressed = {}
         this.del_key_can_be_pressed = true
-        /** @type {x: Number, y: Number} */
-        this.mouse_pos = {x:null, y:null}
+        /** @type {{x: number, y: number}} */
+        this.mouse_pos = {x:0, y:0}
         this.mass_check_pressed_keys = {}
 
 		this.mouse_buttons_down = {}
@@ -50,15 +50,15 @@ export class InputHandler {
 
     /**
 	 * Check if a key is down
-     * @param {String} key 
-     * @returns {Boolean}
+     * @param {string} key 
+     * @returns {boolean}
      */
     isKeyDown(key) { return this.keys_down[key] }
 
     /**
      * Check if a key is pressed (returns true only once per press)
-     * @param {String} key 
-     * @returns {Boolean}
+     * @param {string} key 
+     * @returns {boolean}
      */
     isKeyPressed(key) {
         if (this.keys_pressed[key]) {
@@ -71,8 +71,8 @@ export class InputHandler {
 
 	/**
 	 * Check if a mouse button is down
-	 * @param {Number} button
-	 * @returns {Boolean}
+	 * @param {number} button
+	 * @returns {boolean}
 	 */
 	isMouseDown(button) {
 		return this.mouse_buttons_down[button] || false
@@ -80,8 +80,8 @@ export class InputHandler {
 
 	/**
      * Check if a mouse button is pressed (returns true only once per press)
-	 * @param {Number} button
-	 * @returns {Boolean}
+	 * @param {number} button
+	 * @returns {boolean}
 	 */
 	isMousePressed(button) {
 		if (this.mouse_buttons_pressed[button]) {
@@ -96,7 +96,7 @@ export class InputHandler {
      * If more than one key is pressed at the same time, it will return the first pressed
      * 
      * A key pressed once cannot be returned another time until it is released
-     * @returns {String}
+     * @returns {string?}
      */
     get_down_keys(){
         for(let [key, value] of Object.entries(this.keys_down)){

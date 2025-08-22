@@ -1,3 +1,4 @@
+//@ts-check
 import { Game } from "../core/game.js"
 import { Hitbox } from "./hitbox.js"
 import { Map } from "../world/map.js"
@@ -8,17 +9,21 @@ import { clamp, Resizeable } from "../utils.js"
 
 export class Entity {
     /**
-    * @param {Game} game - The current game
-    * @param {Map} map - The map in which the entity should show up
-    * @param {Tileset} tileset - the tileset used to animate the entity
-    * @param {Hitbox} collision_hitbox - the entity's hitbox used for handling collision with the player
-    * @param {Hitbox} combat_hitbox - the entity's hitbox used for handling attacks
-    * @param {Number} worldX - the entity's x position in the world
-    * @param {Number} worldY - the entity's y position in the world
-    * @param {Number} animation_duration - the animation's frames' duration
-    * @param {number} [life=null] - The entity's life, the entity is being invincible if life is null
-    * @param {{ combat: { x: Number, y: Number; }; collision: { x: Number, y: Number; }; }} [hitboxes_offset={combat:{x:0,y:0},collision:{x:0,y:0}}] - The entity's hitboxes' offset in case you need them to be a little bit offcentered
-    */
+     * 
+     * @param {Game} game 
+     * @param {Map?} map 
+     * @param {Tileset} tileset 
+     * @param {Hitbox} collision_hitbox 
+     * @param {Hitbox} combat_hitbox 
+     * @param {number} worldX 
+     * @param {number} worldY 
+     * @param {number} animation_duration 
+     * @param {number?} life 
+     * @param {{combat: {x: number, y: number}, collision: {x: number, y: number}}} hitboxes_offset 
+     * @param {number?} bottom_y 
+     * @param {boolean} [draggable=false] 
+     * @param {string} type 
+     */
     constructor(game, map, tileset, collision_hitbox, combat_hitbox, worldX, worldY, animation_duration, life=null, hitboxes_offset={combat:{x:0,y:0},collision:{x:0,y:0}}, bottom_y=null, draggable=false, type="") {
 
         this.game = game
@@ -82,7 +87,7 @@ export class Entity {
     }
 
     /**
-     * @param {Number} current_time 
+     * @param {number} current_time 
      * @returns 
      */
     update(current_time) {
@@ -139,9 +144,9 @@ export class Entity {
         this.worldX.set_value(clamp(
             this.worldX.get() + this.dx.get(),
             halfHitboxWidth,
-            this.game.map.world.width.get() - halfHitboxWidth
+            this.game.get_current_map().world.width.get() - halfHitboxWidth
         ))
-        if(this.worldX.get() === this.game.map.world.width.get() - halfHitboxWidth || this.worldX.get() === halfHitboxWidth)
+        if(this.worldX.get() === this.game.get_current_map().world.width.get() - halfHitboxWidth || this.worldX.get() === halfHitboxWidth)
             this.dx.set_value(0)
     }
 
@@ -150,9 +155,9 @@ export class Entity {
         this.worldY.set_value(clamp(
             this.worldY.get() + this.dy.get(),
             halfHitboxHeight,
-            this.game.map.world.height.get() - halfHitboxHeight
+            this.game.get_current_map().world.height.get() - halfHitboxHeight
         ))
-        if(this.worldY.get() === this.game.map.world.height.get() - halfHitboxHeight || this.worldY.get() === halfHitboxHeight)
+        if(this.worldY.get() === this.game.get_current_map().world.height.get() - halfHitboxHeight || this.worldY.get() === halfHitboxHeight)
             this.dy.set_value(0)
     }
 
@@ -181,7 +186,7 @@ export class Entity {
 
     /**
      * 
-     * @param {Number} current_time 
+     * @param {number} current_time 
      * @returns 
      */
     handleAnimation(current_time) {
@@ -189,17 +194,12 @@ export class Entity {
         
         if (current_time - this.last_time < this.animation_duration) return
 
-		switch(this.state) {
-            case constants.IDLE_STATE:
-                this.animation_step = this.framesPerState[constants.IDLE_STATE] == null ? 0: (this.animation_step + 1) % this.framesPerState[constants.IDLE_STATE]
-                break
-			case constants.WALK_STATE:
-				this.animation_step = (this.animation_step + 1) % this.framesPerState[constants.WALK_STATE]
-				break
-			case constants.ATTACK_STATE:
-				this.animation_step = (this.animation_step + 1) % this.framesPerState[constants.ATTACK_STATE]
-				break
-		}
+        let state_frame_number = this.framesPerState[this.state]
+        if(state_frame_number==null){
+            this.animation_step = 0
+        } else {
+            this.animation_step = (this.animation_step + 1) % state_frame_number
+        }
 
         this.last_time = current_time
     }
@@ -228,14 +228,11 @@ export class Entity {
         }
 
 
-        if(this.game.options_menu.debug){
+        if(this.game.get_option_menu().debug){
             this.game.ctx.beginPath()
             this.game.ctx.arc(this.worldX.get() - this.game.camera.x.get(), this.worldY.get() - this.game.camera.y.get(), 3, 0, Math.PI * 2)
             this.game.ctx.fillStyle = this.player ? "blue": "red"
             this.game.ctx.fill()
-        }
-        if(this.player==true){
-            this.render_cool_down(true, true)
         }
     }
 
@@ -250,14 +247,31 @@ export class Entity {
 
     /**
      * 
-     * @param {Map} new_map 
+     * @param {Map?} new_map 
      */
     set_map(new_map) {
         this.map = new_map
         this.collision_hitbox.set_map(new_map)
         this.combat_hitbox.set_map(new_map)
-        if (this.raycast_hitbox)
-            this.raycast_hitbox.set_map(new_map)
+    }
+
+    /**
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    set_pos(x, y){
+        this.worldX.set_value(x)
+        this.worldY.set_value(y)
+    }
+
+    /**
+     * 
+     * @param {number} amount 
+     */
+    damage(amount){
+        if(this.life!=null)
+            this.life -= amount
     }
 
 	destroy() {
@@ -272,8 +286,7 @@ export class Entity {
      * @param {Attack} killing_attack 
      */
     on_death(killing_attack){
-        if(!this.player)
-            this.destroy()
+        if(!this.player) this.destroy()
     }
     /**
      * @param {Attack} attack 
@@ -281,68 +294,42 @@ export class Entity {
     on_attacked(attack){
         if(this.life != null && this.life <= 0) this.on_death(attack)
     }
+
     render_health_bar(){
-        var temp = this.game.ctx.fillStyle
-        this.game.ctx.fillStyle=constants.HEALTH_COLORS[Math.round((this.life/100)*2)]
-        const W = this.combat_hitbox.width.get()*this.life/100
+        if(this.life==null) return // If life=null we don't really need to render the health bar, do we ?
+        let temp = this.game.ctx.fillStyle
+        this.game.ctx.fillStyle = constants.HEALTH_COLORS[Math.round((this.life/100)*2)]
+        let W = this.combat_hitbox.width.get()*this.life/100
         
-        this.rectArrondi(this.game.ctx,this.worldX.get()-this.game.camera.x.get()- W/2,this.worldY.get()-this.game.camera.y.get()-this.combat_hitbox.height.get()/2-new Resizeable(this.game,15).get(), W, new Resizeable(this.game,10).get(), 3)
+        this.roundedRect(this.worldX.get()-this.game.camera.x.get()- W/2,this.worldY.get()-this.game.camera.y.get()-this.combat_hitbox.height.get()/2-new Resizeable(this.game,15).get(), W, new Resizeable(this.game,10).get(), 3)
         this.game.ctx.fillStyle=temp
     }
-    render_cool_down(dash, attack){
-        if (attack==true){
-            var temp = this.game.ctx.fillStyle
-            this.game.ctx.fillStyle="blue"
-            const W = this.combat_hitbox.width.get()/(this.max_attacks)
-            for (let i=1; i<=this.remaining_attacks; i++){
-                this.rectArrondi(this.game.ctx,this.worldX.get()-this.game.camera.x.get()- this.combat_hitbox.width.get()/2 + (i-1) * W,this.worldY.get()-this.game.camera.y.get()-this.combat_hitbox.height.get()/2, W-5, new Resizeable(this.game,10).get(), 3)
-            }
-            if (this.remaining_attacks!=this.max_attacks){
-                this.rectArrondi(this.game.ctx,this.worldX.get()-this.game.camera.x.get()- this.combat_hitbox.width.get()/2 +this.remaining_attacks * W,this.worldY.get()-this.game.camera.y.get()-this.combat_hitbox.height.get()/2, (W-5)*(this.current_time-this.attack_time)/2000, new Resizeable(this.game,10).get(), 3)
 
-            }
-            
-            this.game.ctx.fillStyle=temp
-        }
-        if (dash==true){
-            
-            // console.log('rendering dash')
-            var temp = this.game.ctx.fillStyle
-            const HEX_START = 0XFFF2
-            const HEX_END = 0XFF00
-            
-            let dash_prog=0
-            if (this.current_time-this.last_dash > constants.PLAYER_DASH_COOLDOWN){
-                dash_prog = constants.PLAYER_DASH_COOLDOWN
-            }else{
-                dash_prog = this.current_time-this.last_dash
-            }
-            this.game.ctx.fillStyle="#"+Math.round(HEX_START - (HEX_START-HEX_END)/(constants.PLAYER_DASH_COOLDOWN/(dash_prog))).toString(16)+"00"
-            // console.log(dash_prog)
-            // this.game.ctx.fillRect(new Resizeable(this.game, 20).get(),new Resizeable(this.game, 20).get() , new Resizeable(this.game, dash_prog/10).get(), new Resizeable(this.game,10).get())
-            this.rectArrondi(this.game.ctx,new Resizeable(this.game, 20).get(),new Resizeable(this.game, 20).get() , new Resizeable(this.game, dash_prog/10).get(), new Resizeable(this.game,10).get(), 3)
-            
-            this.game.ctx.fillStyle=temp
-
-        }
+    /**
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} width 
+     * @param {number} height 
+     * @param {number} radius 
+     */
+    roundedRect(x, y, width, height, radius) {
+        this.game.ctx.beginPath();
+        this.game.ctx.moveTo(x, y + radius);
+        this.game.ctx.lineTo(x, y + height - radius);
+        this.game.ctx.quadraticCurveTo(x, y + height, x + radius, y + height);
+        this.game.ctx.lineTo(x + width - radius, y + height);
+        this.game.ctx.quadraticCurveTo(
+            x + width,
+            y + height,
+            x + width,
+            y + height - radius,
+        );
+        this.game.ctx.lineTo(x + width, y + radius);
+        this.game.ctx.quadraticCurveTo(x + width, y, x + width - radius, y);
+        this.game.ctx.lineTo(x + radius, y);
+        this.game.ctx.quadraticCurveTo(x, y, x, y + radius);
+        this.game.ctx.stroke();
+        this.game.ctx.fill()
     }
-    rectArrondi(ctx, x, y, largeur, hauteur, rayon) {
-                ctx.beginPath();
-                ctx.moveTo(x, y + rayon);
-                ctx.lineTo(x, y + hauteur - rayon);
-                ctx.quadraticCurveTo(x, y + hauteur, x + rayon, y + hauteur);
-                ctx.lineTo(x + largeur - rayon, y + hauteur);
-                ctx.quadraticCurveTo(
-                    x + largeur,
-                    y + hauteur,
-                    x + largeur,
-                    y + hauteur - rayon,
-                );
-                ctx.lineTo(x + largeur, y + rayon);
-                ctx.quadraticCurveTo(x + largeur, y, x + largeur - rayon, y);
-                ctx.lineTo(x + rayon, y);
-                ctx.quadraticCurveTo(x, y, x, y + rayon);
-                ctx.stroke();
-                ctx.fill()
-             }
 }

@@ -1,3 +1,4 @@
+//@ts-check
 import { config } from "../constants.js"
 import { Game } from "../core/game.js"
 import { slice } from "../utils.js"
@@ -6,18 +7,25 @@ export class Item{
     /**
      * 
      * @param {Game} game 
-     * @param {String} name 
+     * @param {string} name 
      */
     constructor(game, name){
         this.game = game
         this.name = name
         this.game.items[name] = this
-        /** @type {Array<String>} */
+        /** @type {Array<string>?} */
         this.tooltip = null
         this.max_count = 99
         this.quest_item = false
     }
 
+    /**
+     * 
+     * @param {Game} game 
+     * @param {string} src 
+     * @param {string} name 
+     * @returns {Promise<Item>}
+     */
     static async create(game, src, name){
         let item = new Item(game, name)
         try{
@@ -28,6 +36,10 @@ export class Item{
         return item
     }
 
+    /**
+     * 
+     * @param {string} src 
+     */
     async load(src){
         const img = new Image();
         img.src = src;
@@ -41,7 +53,7 @@ export class Item{
 
     /**
      * 
-     * @param {String} tooltip 
+     * @param {string} tooltip 
      * @returns {Item}
      */
     set_tooltip(tooltip){
@@ -51,7 +63,7 @@ export class Item{
 
     /**
      * 
-     * @param {Number} count 
+     * @param {number} count 
      * @returns {Item}
      */
     set_max_count(count){
@@ -70,12 +82,13 @@ export class Item{
     }
 }
 
+//@ts-ignore
 export class Consumable extends Item{
     /**
      * 
      * @param {Game} game 
-     * @param {String} name 
-     * @param {(consumable: Consumable, time: Number) => void} on_use 
+     * @param {string} name 
+     * @param {(consumable: Consumable, time: number) => void} on_use 
      */
     constructor(game, name, on_use){
         super(game, name)
@@ -85,9 +98,9 @@ export class Consumable extends Item{
     /**
      * 
      * @param {Game} game 
-     * @param {String} src 
-     * @param {String} name 
-     * @param {(consumable: Consumable, time: Number) => void} on_use 
+     * @param {string} src 
+     * @param {string} name 
+     * @param {(consumable: Consumable, time: number) => void} on_use 
      * @returns {Promise<Consumable>}
      */
     static async create(game, src, name, on_use){
@@ -99,14 +112,48 @@ export class Consumable extends Item{
         }
         return consumable
     }
+
+    /**
+     * 
+     * @param {string} tooltip 
+     * @returns {Consumable}
+     */
+    set_tooltip(tooltip){
+        let consumable = super.set_tooltip(tooltip)
+        if(consumable instanceof Consumable){
+            return consumable
+        } else throw new Error('Somehow, the item wasn\'t a consumable')
+    }
+    /**
+     * 
+     * @param {number} count 
+     * @returns {Consumable}
+     */
+    set_max_count(count){
+        let consumable = super.set_max_count(count)
+        if(consumable instanceof Consumable){
+            return consumable
+        } else throw new Error('Somehow, the item wasn\'t a consumable')
+    }
+    /**
+     * 
+     * @returns {Consumable}
+     */
+    set_quest_item(){
+        let consumable = super.set_quest_item()
+        if(consumable instanceof Consumable){
+            return consumable
+        } else throw new Error('Somehow, the item wasn\'t a consumable')
+    }
 }
 
+//@ts-ignore
 export class Passive extends Item{
     /**
      * 
      * @param {Game} game 
-     * @param {String} name 
-     * @param {(passive: Passive, time: Number) => void} effect 
+     * @param {string} name 
+     * @param {(passive: Passive, time: number) => void} effect 
      */
     constructor(game, name, effect){
         super(game, name)
@@ -116,9 +163,9 @@ export class Passive extends Item{
     /**
      * 
      * @param {Game} game 
-     * @param {String} src 
-     * @param {String} name 
-     * @param {(passive: Passive, time: Number) => void} effect 
+     * @param {string} src 
+     * @param {string} name 
+     * @param {(passive: Passive, time: number) => void} effect 
      * @returns {Promise<Passive>}
      */
     static async create(game, src, name, effect){
@@ -130,6 +177,39 @@ export class Passive extends Item{
         }
         return passive
     }
+
+    /**
+     * 
+     * @param {string} tooltip 
+     * @returns {Passive}
+     */
+    set_tooltip(tooltip){
+        let passive = super.set_tooltip(tooltip)
+        if(passive instanceof Passive){
+            return passive
+        } else throw new Error('Somehow, the item wasn\'t a passive')
+    }
+    /**
+     * 
+     * @param {number} count
+     * @returns {Passive} 
+     */
+    set_max_count(count){
+        let passive = super.set_max_count(count)
+        if(passive instanceof Passive){
+            return passive
+        } else throw new Error('Somehow, the item wasn\'t a passive')
+    }
+    /**
+     * 
+     * @returns {Passive}
+     */
+    set_quest_item(){
+        let passive = super.set_quest_item()
+        if(passive instanceof Passive){
+            return passive
+        } else throw new Error('Somehow, the item wasn\'t a passive')
+    }
 }
 
 export class ItemStack{
@@ -137,7 +217,7 @@ export class ItemStack{
     /**
      * 
      * @param {Item} item 
-     * @param {Number} count
+     * @param {number} count
      */
     constructor(item, count){
         if(item.max_count < count) console.error("Max item count reached")
@@ -150,7 +230,7 @@ export class ItemStack{
 
     /**
      * 
-     * @param {Number} n 
+     * @param {number} n 
      */
     add_count(n){
         if(this.count < -n) console.error("Negative item count")
