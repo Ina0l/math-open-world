@@ -20,6 +20,7 @@ import { Inventory } from '../ui/inventory.js'
 import { Consumable, Item, ItemStack, Passive} from '../ui/items.js'
 import { Map } from '../world/map.js'
 import { Tileset } from '../world/tileset.js'
+import { Minimap } from '../ui/minimap.js'
 
 
 export class Game {
@@ -182,6 +183,8 @@ export class Game {
 
 		/**@type {Array<{command: () => void, delay: number}>} */
 		this.scheduled = []
+
+		this.minimap = new Minimap(this)
 	}
 
 	async run() {
@@ -774,7 +777,7 @@ export class Game {
 		createTpHitboxes(this, 'castle', {x: 12, y: 53, width: 1, height: 0.25}, {x: 12, y: 54}, {x: 12, y: 47.75, width: 1, height: 0.25}, {x: 12, y: 46}, constants.UP_DIRECTION, constants.DOWN_DIRECTION, black_transition)
 		createTpHitboxes(this, 'castle', {x: 22.75, y: 41, width: 0.25, height: 1}, {x: 21, y: 41}, {x: 27, y: 41, width: 0.25, height: 1}, {x: 28, y: 41.5}, constants.LEFT_DIRECTION, constants.RIGHT_DIRECTION, black_transition)
 
-
+		console.log("game launch ended")
 		
 		requestAnimationFrame(this.loop.bind(this))
 	}
@@ -862,6 +865,8 @@ export class Game {
 		if(this.current_ui){
 			this.current_ui.render()
 		}
+
+		this.minimap.render()
 	}
 
 	/**

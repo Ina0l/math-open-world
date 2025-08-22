@@ -1,7 +1,7 @@
 //@ts-check
 import { Game } from "../core/game.js"
 import { config, constants, tilesets } from "../constants.js"
-import { Resizeable, YResizeable } from "../utils.js"
+import { not_displayed_ctx, Resizeable, YResizeable } from "../utils.js"
 import { Entity } from "../entities/entity.js"
 
 export class Tileset {
@@ -24,6 +24,8 @@ export class Tileset {
         this.tiles_length = null
         /**@type {number?} */
         this.tilesPerRow = null
+        /**@type {string} */
+        this.source = "source not defined"
     }
 
     /**
@@ -40,15 +42,18 @@ export class Tileset {
         const tileset = new Tileset(game, img_tile_size, screen_tile_size, tileset_spacing)
         try {
             await tileset.load(config.IMG_DIR + src)
+            tileset.source = src.split(".").slice(0, -1).join(".")
         } catch (error) {
             console.error(`Couldn't load file "${src}": ${error.message}`)
             throw new Error(`Failed to load tileset image: ${error.message}`)
         }
-		tileset.tiles_length = Math.round(tileset.get_img().width * tileset.get_img().height / Math.pow(tileset.img_tile_size, 2))
+
+		tileset.tiles_length = Math.round(tileset.get_img().width * tileset.get_img().height / Math.pow(tileset.img_tile_size + tileset.tileset_spacing, 2))
 		tileset.tilesPerRow = Math.floor(
 			(tileset.get_img().width + tileset_spacing) / (tileset.img_tile_size + tileset_spacing)
 		)
-        game.tilesets[src.split(".").slice(0, -1).join(".")] = tileset
+        game.tilesets[tileset.source] = tileset
+
         return tileset
     }
 
@@ -153,4 +158,52 @@ export class Tileset {
         else return this.tilesPerRow
     }
 
+    /**
+     * 
+     * @param {number} tile_index 
+     * @returns {{r: number, g: number, b: number}}
+     */
+    get_tile_average(tile_index){
+        if (!this.img) {
+			throw new Error("Tileset image not loaded.")
+		}
+
+        // subtract 1 (1-based index to 0-based index)
+		tile_index = (tile_index - 1) % this.get_tiles_length() // just in case
+
+		let tile_num_x = tile_index % this.get_tilesPerRow()
+		let tile_num_y = Math.floor(tile_index / this.get_tilesPerRow())
+
+		let tileX = tile_num_x * (this.img_tile_size + this.tileset_spacing)
+		let tileY = tile_num_y * (this.img_tile_size + this.tileset_spacing)
+
+        not_displayed_ctx.drawImage(
+            this.img,
+            tileX, tileY,
+            this.img_tile_size, this.img_tile_size,
+            0, 0,
+            this.img_tile_size, this.img_tile_size
+        )
+
+        let color_sum = {r: 0, g: 0, b: 0}
+        let transparent_tiles = 0
+
+        for(let x = 0; x<this.img_tile_size; x++){
+            for(let y = 0; y<this.img_tile_size; y++){
+                let color_data = not_displayed_ctx.getImageData(x, y, 1, 1).data
+                if(color_data[3]<16){
+                    transparent_tiles++
+                    continue
+                }
+                for(let i = 0; i<3; i++){
+                    color_sum[["r", "g", "b"][i]] += color_data[i]
+                }
+            }
+        }
+        return (transparent_tiles==this.img_tile_size**2)? {r: 0, g: 0, b: 0}: {
+            r: color_sum.r/(this.img_tile_size**2 - transparent_tiles),
+            g: color_sum.g/(this.img_tile_size**2 - transparent_tiles),
+            b: color_sum.b/(this.img_tile_size**2 - transparent_tiles),
+        }
+    }
 }
