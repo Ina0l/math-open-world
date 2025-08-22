@@ -1,3 +1,4 @@
+//@ts-check
 import { Hitbox } from './hitbox.js'
 import { Entity } from './entity.js'
 import { Game } from '../core/game.js'
@@ -31,16 +32,16 @@ export class Attack {
 	 * @param {Game} game
 	 * @param {Entity} attacker 
 	 * @param {Map} map
-	 * @param {Number} timeOrigin
-	 * @param {Number} duration
+	 * @param {number} timeOrigin
+	 * @param {number} duration
 	 * @param {Array<Hitbox>} hitboxes
 	 * @param {(e: Entity) => void} attack
-	 * @param {Tileset} [tileset=null]
-	 * @param {Number} [frame_duration=null] - in ms
-	 * @param {{x:number, y:number}} [animation_cords=null]
-	 * @param {Boolean} [still=true] - wether the attack is still
-	 * @param {Boolean} [persistent=false]
-	 * @param {Number} [cooldown=null] - time between each apply in ms
+	 * @param {Tileset?} [tileset=null]
+	 * @param {number?} [frame_duration=null] - in ms
+	 * @param {{x:number, y:number}?} [animation_cords=null]
+	 * @param {boolean} [still=true] - wether the attack is still
+	 * @param {boolean} [persistent=false]
+	 * @param {number?} [cooldown=null] - time between each apply in ms
 	 */
 	constructor(game, attacker, map, timeOrigin, duration, hitboxes, attack, tileset=null, frame_duration=null, animation_cords=null, still=true, persistent=false, cooldown=null) {
 		/** @type {Game} */
@@ -49,9 +50,9 @@ export class Attack {
 		this.attacker = attacker
 		/** @type {Map} */
 		this.map = map
-		/** @type {Number} */
+		/** @type {number} */
 		this.timeOrigin = timeOrigin
-		/** @type {Number} */
+		/** @type {number} */
 		this.duration = duration
 		this.id = game.next_attack_id
 		game.next_attack_id++
@@ -70,35 +71,40 @@ export class Attack {
 		/** @type {Array<Entity>} */
 		this.entities = []
 
-		/** @type {Tileset} */
+		/** @type {Tileset?} */
 		this.tileset = tileset
-		/** @type {Number} */
+		/** @type {number?} */
 		this.frame_duration = frame_duration
-		if (tileset) {
+		if (tileset && animation_cords) {
 			/** @type {{x: Resizeable, y: Resizeable}} */
 			this.animation_cords = {
 				x: new Resizeable(game, animation_cords.x),
 				y: new Resizeable(game, animation_cords.y)
 			}
 		}
-		/** @type {Number} */
+		/** @type {number} */
 		this.current_frame = 0
-		/** @type {Number} */
-		this.lastFrameUpdate = timeOrigin - frame_duration
+		/** @type {number} */
+		this.lastFrameUpdate = timeOrigin - (frame_duration ?? 0)
 
-		/** @type {Boolean} */
+		/** @type {boolean} */
 		this.still = still
 
-		/** @type {Boolean} */
+		/** @type {boolean} */
         this.persistent = persistent
-        /** @type {Number|null} */
+        /** @type {number|null} */
         this.cooldown = cooldown
-        /** @type {Array<Number>} */
+        /** @type {Array<number>} */
         this.last_applies = [] // Always initialize, even for non-persistent attacks
 
 		this.game.attacks.push(this)
 	}
 
+	/**
+	 * 
+	 * @param {number} current 
+	 * @returns 
+	 */
 	update(current) {
 		if (current - this.timeOrigin >= this.duration) {
 			this.destroy()
@@ -108,7 +114,7 @@ export class Attack {
 			this.updateHitboxes(current)
 		}
 		
-		if (!this.tileset) return
+		if (!(this.tileset && this.frame_duration)) return
 		if (current - this.lastFrameUpdate >= this.frame_duration) {
 			this.lastFrameUpdate = current
 			this.updateFrame()
@@ -123,33 +129,34 @@ export class Attack {
 	}
 
 	updateFrame() {
-		this.current_frame = (this.current_frame + 1) % this.tileset.tiles_length + 1// don't need to worry about it thanks to the modulo in  tileset.drawTile
+		if (!(this.tileset && this.frame_duration)) return
+		this.current_frame = (this.current_frame + 1) % this.tileset.get_tiles_length() + 1// don't need to worry about it thanks to the modulo in  tileset.drawTile
 	}
 
+	/**
+	 * 
+	 * @param {number} current 
+	 */
 	updateHitboxes(current) {
 	}
 
 	/**
 	 * @param {Entity} entity 
-	 * @param {Number} current
+	 * @param {number} current
 	 * @returns {void}
 	 */
 	apply(entity, current) {
 		if (entity === this.attacker) return
-		let invincible = entity.life == null
 		const i = this.entities.indexOf(entity)
 		if (i !== -1) {
-			if (!this.persistent)
-				return
+			if (!(this.persistent && this.cooldown)) return
 			if (current - this.last_applies[i] >= this.cooldown) {
 				this.attack(entity)
-				if(invincible) entity.life = null
 				this.last_applies[i] = current
 				entity.on_attacked(this)
 			}
 		} else {
 			this.attack(entity)
-			if(invincible) entity.life = null
 			this.entities.push(entity)
 			if (this.still)
 				this.last_applies.push(current)
@@ -175,36 +182,39 @@ export class Attack {
 
 
 /**
- * Clockwise attack
+ * #### Clockwise attack
+ * 
  * As it's impossible to have a rotated rectangle hitbox,
+ * 
  * We mimic this behaviour by having a rectangle sliding fastly
- * 			         range
- * 				 <----------->
- *             ^ +-----------+ ^
- *             | |           | | rec_width
- *             | +-----------+ v
- * slide_width |
- *             |       |
- *             |       v
- *             v
+ * 
+ *  -                    range
+ *  -                <----------->
+ *  -              ^ +-----------+ ^
+ *  -              | |           | | rec_width
+ *  -              | +-----------+ v
+ *  -  slide_width |
+ *  -              |       |
+ *  -              |       v
+ *  -              v
  */
 export class SwingingAttack extends Attack {
     /**
      * @param {Game} game
      * @param {Entity} attacker
      * @param {Map} map
-     * @param {Number} timeOrigin
-     * @param {Number} duration
+     * @param {number} timeOrigin
+     * @param {number} duration
      * @param {{x:number, y:number}} startPoint
-     * @param {Number} direction 
-     * @param {Number} weapon_width 
-     * @param {Number} attack_width 
-     * @param {Number} range
+     * @param {number} direction 
+     * @param {number} weapon_width 
+     * @param {number} attack_width 
+     * @param {number} range
      * @param {(e: Entity) => void} attack
-	 * @param {Tileset} [tileset=null]
-	 * @param {Number} [frame_duration=null]
-     * @param {Boolean} [persistent=false]
-     * @param {Number} [cooldown=null] - time between each apply in ms
+	 * @param {Tileset?} [tileset=null]
+	 * @param {number?} [frame_duration=null]
+     * @param {boolean} [persistent=false]
+     * @param {number?} [cooldown=null] - time between each apply in ms
      */
     constructor(game, attacker, map, timeOrigin, duration, startPoint, direction, weapon_width, attack_width, range, attack, tileset=null, frame_duration=null, persistent=false, cooldown=null) {
         let hitbox
@@ -223,9 +233,11 @@ export class SwingingAttack extends Attack {
             case constants.RIGHT_DIRECTION:
                 hitbox = new Hitbox(game, map, startPoint.x, startPoint.y - halfWeapon, range, weapon_width)
                 break
+			default:
+				throw new Error('wrong constant provided for "direction"')
         }
         
-        super(game, attacker, map, timeOrigin, duration, [hitbox], attack, tileset, frame_duration, {x: 0, y:0}, persistent, cooldown)
+        super(game, attacker, map, timeOrigin, duration, [hitbox], attack, tileset, frame_duration, {x: 0, y:0}, persistent, persistent, cooldown)
 		if (tileset) {
 			this.animation_cords.x.set_value(this.hitboxes[0].x1.get())
 			this.animation_cords.y.set_value(this.hitboxes[0].y1.get())
@@ -242,6 +254,10 @@ export class SwingingAttack extends Attack {
         }
     }
 
+	/**
+	 * 
+	 * @param {number} current 
+	 */
     updateHitboxes(current) {
         const progression = (current - this.timeOrigin) / this.duration
         const maxOffset = this.attack_width.get() - this.weapon_width.get()
@@ -277,18 +293,18 @@ export class ProjectileAttack extends Attack {
 	 * @param {Game} game
 	 * @param {Entity} attacker 
 	 * @param {Map} map
-	 * @param {Number} timeOrigin
-	 * @param {Number} duration
+	 * @param {number} timeOrigin
+	 * @param {number} duration
 	 * @param {Array<Hitbox>} hitboxes
-	 * @param {Number} dx
-	 * @param {Number} dy
+	 * @param {number} dx
+	 * @param {number} dy
 	 * @param {(e: Entity) => void} attack
-	 * @param {Boolean} [piercing=false]
-	 * @param {Tileset} [tileset=null]
-	 * @param {Number} [frame_duration=null]
-	 * @param {{x:number, y:number}} [animation_cords=null]
-	 * @param {Boolean} [persistent=false]
-	 * @param {Number} [cooldown=null] - time between each apply in ms
+	 * @param {boolean} [piercing=false]
+	 * @param {Tileset?} [tileset=null]
+	 * @param {number?} [frame_duration=null]
+	 * @param {{x:number, y:number}?} [animation_cords=null]
+	 * @param {boolean} [persistent=false]
+	 * @param {number?} [cooldown=null] - time between each apply in ms
 	 */
 	constructor(game, attacker, map, timeOrigin, duration, hitboxes, dx, dy, attack = (((e) => {})), piercing=false, tileset=null, frame_duration=null, animation_cords=null, persistent=false, cooldown=null) {
 		super(game, attacker, map, timeOrigin, duration, hitboxes, attack, tileset, frame_duration, animation_cords, false, persistent, cooldown)
@@ -301,18 +317,22 @@ export class ProjectileAttack extends Attack {
 		super.updateFrame()
 	}
 
+	/**
+	 * 
+	 * @param {number} current 
+	 */
 	updateHitboxes(current) {
-		for (const hb of this.hitboxes) {
-			for (const colliding of hb.get_colliding_hitboxes(true, false)) {
+		for (let hb of this.hitboxes) {
+			for(let colliding of hb.get_colliding_hitboxes(true, false)) {
 				if (colliding.owner !== this.attacker) {
 					this.destroy()
 					return
 				}
 			}
 
-			for (const colliding of hb.get_colliding_hitboxes(false, true)) {
+			for(let colliding of hb.get_colliding_hitboxes(false, true)) {
 				if (colliding.owner instanceof ProjectileAttack && colliding.owner !== this) {
-					if (!colliding.piercing)
+					if (!colliding.owner.piercing)
 						colliding.destroy()
 					if (!this.piercing) {
 						this.destroy()
@@ -321,7 +341,7 @@ export class ProjectileAttack extends Attack {
 				}
 			}
 
-			if (!hb.isWithinMapBounds(this.map)) {
+			if (!hb.isWithinMapBounds()) {
 				this.destroy()
 				return
 			}

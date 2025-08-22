@@ -1,3 +1,4 @@
+//@ts-check
 import { Game } from "../core/game.js"
 import { Map } from "../world/map.js"
 import { Attack } from "./attack.js"
@@ -8,15 +9,15 @@ import { Talkable } from "./talkable.js"
 export class Hitbox {
 	/**
 	 * @param {Game} game - game object reference
-	 * @param {Map} map - the hitbox's map
-	 * @param {Number} x - left x
-	 * @param {Number} y - top y
-	 * @param {Number} width - hitbox width
-	 * @param {Number} height - hitbox height
+	 * @param {Map?} map - the hitbox's map
+	 * @param {number} x - left x
+	 * @param {number} y - top y
+	 * @param {number} width - hitbox width
+	 * @param {number} height - hitbox height
 	 * @param {boolean} collision - is the hitbox a collision hitbox
 	 * @param {boolean} [player=false] - is the hitbox a player's hitbox
-	 * @param {Attack | Entity} [owner=null] - the hitbox's owner, let null to make it unmovable
-	 * @param {(hitbox: Hitbox, colliding_hitbox: Hitbox, time: Number) => void} [command=((h, c_h, t) => {})] - function executed when colliding with anonther hitbox
+	 * @param {Attack | Entity | Talkable | null} [owner=null] - the hitbox's owner, let null to make it unmovable
+	 * @param {(hitbox: Hitbox, colliding_hitbox: Hitbox, time: number) => void} [command=((h, c_h, t) => {})] - function executed when colliding with anonther hitbox
 	 */
 	constructor(game, map, x, y, width, height, collision=false, player=false, owner=null, command=((h, c_h, t) => {})){
 		this.game = game
@@ -25,8 +26,6 @@ export class Hitbox {
 
 		this.id = this.game.next_hitbox_id
 		this.game.next_hitbox_id++
-		this.x =x
-		this.y = y
 		this.x1 = new Resizeable(game, x)
 		this.x2 = new Resizeable(game, x + width)
 		this.y1 = new Resizeable(game, y)
@@ -46,7 +45,8 @@ export class Hitbox {
 	}
 
 	/**
-	 * @param {Number} i - index (0, 1, 2 or 3)
+	 * @param {number} i - index (0, 1, 2 or 3 for the coordinates of the top-left, top-right, bottom-left and bottom-right corners)
+	 * @returns {{x: number, y: number}}
 	 */
 	get_corner(i) {
 		switch(i) {
@@ -55,6 +55,7 @@ export class Hitbox {
 			case 2: return {x: this.x1.get(), y: this.y2.get()}
 			case 3: return {x: this.x2.get(), y: this.y2.get()}
 		}
+		return {x: 0, y: 0}
 	}
 
 	/**
@@ -62,6 +63,22 @@ export class Hitbox {
 	 */
 	set_owner(owner){
 		this.owner = owner
+	}
+
+	/**@returns {Attack} */
+	get_owner_as_a(){
+		if(!(this.owner instanceof Attack)) throw new Error('Property isn\'t of requested type')
+		else return this.owner
+	}
+	/**@returns {Entity} */
+	get_owner_as_e(){
+		if(!(this.owner instanceof Entity)) throw new Error('Property isn\'t of requested type')
+		else return this.owner
+	}
+	/**@returns {Talkable} */
+	get_owner_as_t(){
+		if(!(this.owner instanceof Talkable)) throw new Error('Property isn\'t of requested type')
+		else return this.owner
 	}
 
 	render() {
@@ -84,7 +101,7 @@ export class Hitbox {
 
 	/**
 	 * @param {Hitbox} hitbox
-	 * @return {Boolean}
+	 * @return {boolean}
 	 */
 	is_colliding(hitbox) {
 		if (this == hitbox) return false
@@ -98,11 +115,11 @@ export class Hitbox {
 	 * @returns {Array<Hitbox>}
 	 */
 	get_colliding_hitboxes(collision=true, combat=true) {
-		const colliding_hitboxes = []
+		/**@type {Array<Hitbox>} */
+		var colliding_hitboxes = []
 		if (combat) {
 			this.game.combat_hitboxes.forEach(hitbox => {
-				if (!hitbox.active)
-					return
+				if (!hitbox.active) return
 				if (this.is_colliding(hitbox))
 					colliding_hitboxes.push(hitbox)
 			})
@@ -110,8 +127,7 @@ export class Hitbox {
 
 		if (collision) {
 			this.game.collision_hitboxes.forEach(hitbox => {
-				if (!hitbox.active)
-					return
+				if (!hitbox.active) return
 				if (this.is_colliding(hitbox))
 					colliding_hitboxes.push(hitbox)
 			})
@@ -119,11 +135,10 @@ export class Hitbox {
 
 		if(!(combat || collision)){
 			this.game.hitboxes.forEach(hitbox => {
-				if( (!hitbox in colliding_hitboxes) && (!hitbox in this.game.collision_hitboxes) && (!hitbox in this.game.combat_hitboxes)){
-					if (!hitbox.active)
-						return
+				if(!colliding_hitboxes.includes(hitbox) && !this.game.collision_hitboxes.includes(hitbox) && !this.game.combat_hitboxes.includes(hitbox)){
+					if (!hitbox.active) return
 					if (this.is_colliding(hitbox))
-						colliding_hitboxes.push(this.game.collision_hitboxes[i])
+						colliding_hitboxes.push(hitbox)
 				}
 			})
 		}
@@ -132,8 +147,8 @@ export class Hitbox {
 
 	/**
 	 * 
-	 * @param {Number} x 
-	 * @param {Number} y 
+	 * @param {number} x 
+	 * @param {number} y 
 	 */
 	center_around(x, y) {
 		this.x1.set_value(x - this.width.get() / 2)
@@ -143,10 +158,10 @@ export class Hitbox {
 	}
 
 	/**
-	 * @param {Number} x 
-	 * @param {Number} y 
-	 * @param {Number} [width=null] 
-	 * @param {Number} [height=null] 
+	 * @param {number} x 
+	 * @param {number} y 
+	 * @param {number?} [width=null] 
+	 * @param {number?} [height=null] 
 	 */
 	set(x, y, width=null, height=null) {
 		this.x1.set_value(x)
@@ -168,8 +183,8 @@ export class Hitbox {
 	}
 
 	/**
-	 * @param {Number} dx 
-	 * @param {Number} dy 
+	 * @param {number} dx 
+	 * @param {number} dy 
 	 */
 	move_by(dx, dy) {
 		this.x1.set_value(this.x1.get() + dx)
@@ -180,7 +195,7 @@ export class Hitbox {
 
 	/**
 	 * 
-	 * @param {Map} new_map 
+	 * @param {Map?} new_map 
 	 */
 	set_map(new_map){
 		this.map = new_map
@@ -188,9 +203,10 @@ export class Hitbox {
 
 	/**
 	 * 
-	 * @returns {Boolean}
+	 * @returns {boolean}
 	 */
 	isWithinMapBounds() {
+		if(this.map==null) return false
 		return !(this.map.world.width.get() <= this.x2.get() || this.x1.get() <= 0 || this.y2.get() >= this.map.world.height.get() || this.y1.get() <= 0)
 	}
 

@@ -1,3 +1,4 @@
+//@ts-check
 import { Game } from "../core/game.js"
 import { Hitbox } from "../entities/hitbox.js"
 import { constants, config, maps } from "../constants.js"
@@ -5,19 +6,22 @@ import { Resizeable } from "../utils.js"
 
 export class Map {
 	/**
-	 * !!! One shouldn't use the constructor to make a map, use the static create method instead
+	 * ## One shouldn't use the constructor to make a map, use the static create method instead
 	 * @param {Game} game - The current game
-	 * @param {String} background - The color of the tileless background
-	 * @param {{x: Number, y: Number}} player_pos - The position of the player on this specific map
+	 * @param {string} background - The color of the tileless background
+	 * @param {{ x: number; y: number; }} playerSpawnPos
+	 * @param {{[tile_nb: number]: {x?: number, y?: number, width?: number, height?: number, void_tile?: boolean}|undefined}} collisions
+	 * @param {any} blockDepthOrder
 	 */
 	constructor(game, background, playerSpawnPos, collisions, blockDepthOrder) {
 		this.game = game
+		/**@type {Array<{firstgid: number, source: string}>} */
 		this.tilesets = []
 		this.ground = []
 		this.blocks = []
 		this.perspective = []
-
-		this.world = {}
+		/**@type {{width: Resizeable, height: Resizeable}} */
+		this.world = {width: new Resizeable(game, 0), height: new Resizeable(game, 0)}
 		this.background = background
 		this.player_pos = {
 			x: new Resizeable(game, playerSpawnPos.x * constants.TILE_SIZE),
@@ -25,15 +29,25 @@ export class Map {
 		}
 		this.collisions = collisions
 		this.blockDepthOrder = blockDepthOrder
+
+		this.last_frame_time = 0
+		this.current_frame = 0
+		this.animation_tilesets = {}
+
+		/**@type {Array<{r: number, g: number, b: number}>} */
+		this.topmost_average = []
 	}
 
 	/**
-	 * A scenery on which are put other objects (entities, hitboxes, ...). This method is async and static
+	 * #### A scenery on which are put other objects (entities, hitboxes, ...).
+	 * This method is async and static
 	 * @param {Game} game - The current game
-	 * @param {String} src - The path to the json file used as a reference to layout the map
-	 * @param {String} background - The color of the tileless background
-	 * @param {{x: Number, y: Number}} player_pos - The position of the player on this specific map
+	 * @param {string} src - The path to the json file used as a reference to layout the map
+	 * @param {string} background - The color of the tileless background
 	 * @returns {Promise<Map>}
+	 * @param {{ x: number; y: number; }} playerSpawnPos
+	 * @param {{[tile_nb: number]: {x?: number, y?: number, width?: number, height?: number, void_tile?: boolean}|undefined}} collisions
+	 * @param {Array<number>} blockDepthOrder
 	 */
 	static async create(game, src, background, playerSpawnPos, collisions, blockDepthOrder) {
 		const map = new Map(game, background, playerSpawnPos, collisions, blockDepthOrder)
@@ -42,6 +56,10 @@ export class Map {
 		return map
 	}
 
+	/**
+	 * @param {Game} game
+	 * @param {string} map
+	 */
 	static async loadMaps(game, map) {
 		for (let map of maps) {
 			await Map.create(game, map.src, map.bg_color, map.spawn_cords, map.collisions, map.block_depth_order)
@@ -52,7 +70,7 @@ export class Map {
 
 	/**
 	 * 
-	 * @param {String} src 
+	 * @param {string} src 
 	 */
 	async load(src) {
 		this.src = src
@@ -64,19 +82,16 @@ export class Map {
 		const body = await response.json()
 		this.width = body.width
 		this.height = body.height
-		this.world.width = new Resizeable(this.game, this.width * constants.TILE_SIZE)
-		this.world.height = new Resizeable(this.game, this.height * constants.TILE_SIZE)
+		this.world.width.set_value(this.width * constants.TILE_SIZE)
+		this.world.height.set_value(this.height * constants.TILE_SIZE)
 
 		this.animated_tiles = body.animated || {}
 		this.framerate = null
 		if(body.map_framerate)
 			this.framerate = body.map_framerate
-		this.last_frame_time = 0
-		this.current_frame = 0
-		this.animation_tilesets = {}
 
-		for(let [tile_num, animation] of Object.entries(this.animated_tiles)){
-			tile_num = parseInt(tile_num)
+		for(let [tile_num_str, animation] of Object.entries(this.animated_tiles)){
+			let tile_num = parseInt(tile_num_str)
 			this.animation_tilesets[tile_num] = this.game.tilesets[animation.tileset]
 		}
 
@@ -108,11 +123,12 @@ export class Map {
 
 				let [x, y, width, height] = [0, 0, constants.TILE_SIZE, constants.TILE_SIZE]
 
-				if (tileId in this.collisions) {
-					const col = this.collisions[tileId]
-					const scale = constants.TILE_SIZE / 128
+				if (this.collisions && tileId in this.collisions) {
+					let col = this.collisions[tileId]
+					if(!col) continue
+					let scale = constants.TILE_SIZE / 128
 
-					if (col.void) continue
+					if (col.void_tile) continue
 
 					x = (col.x || 0) * scale
 					y = (col.y || 0) * scale
@@ -133,23 +149,58 @@ export class Map {
 			}
 			this.tilesets.push(tileset)
 		}
+
+		/**@type {Array<number>} */
+		let topmost_tiles = []
+		if(this.perspective.length > 0){
+			topmost_tiles = this.perspective.at(-1).data.slice(0)
+		} else if(this.blocks.length > 0){
+			topmost_tiles = this.blocks.at(-1).data.slice(0)
+		} else if(this.ground.length > 0){
+			topmost_tiles = this.ground.at(-1).data.slice(0)
+		}
+		for(let layer_type of ["perspective", "blocks", "ground"]){
+			for(let layer of this[layer_type].toReversed()){
+				for(let i=0; i < (layer.width * layer.height); i++){
+					if(topmost_tiles[i] <= 0){
+						topmost_tiles[i] = layer.data[i]
+					}
+				}
+			}
+		}
+
+		/**@type {{[tile_nb: number]: {r: number, g: number, b: number}}} */
+		let known_averages = {}
+
+		for(let tile_nb of topmost_tiles){
+			let tileset = this.getTileset(tile_nb)
+			if(!tileset){
+				this.topmost_average.push({r: 0, g: 0, b: 0})
+				continue
+			} else if(known_averages[tile_nb]){
+				this.topmost_average.push(known_averages[tile_nb])
+			} else {
+				let color = this.game.tilesets[tileset.source].get_tile_average(tile_nb - tileset.firstgid + 1)
+				this.topmost_average.push(color)
+				known_averages[tile_nb] = color
+			}
+		}
 	}
 
 	/**
-	 * 
-	 * @param {Number} current_time 
+	 * @param {number} current_time
 	 */
-	update(currentTime){
+	update(current_time){
 		if(!this.framerate) return
-		if(currentTime - this.last_frame_time >= this.framerate){
+		if(current_time - this.last_frame_time >= this.framerate){
 			this.current_frame++
-			this.last_frame_time = currentTime
+			this.last_frame_time = current_time
 		}
 	}
 
 	/**
 	 * 
-	 * @param {{x: Number, y: Number}} new_player_pos 
+	 * @param {{x: number, y: number}} new_player_pos 
 	 */
 	set_player_pos(new_player_pos){
 		this.player_pos.x.set_value(new_player_pos.x)
@@ -157,6 +208,7 @@ export class Map {
 	}
 
 	render() {
+		if(!this.src) return
 		this.game.ctx.fillStyle = this.background
 		this.game.ctx.fillRect(0, 0, this.game.canvas.width, this.game.canvas.height)
 
@@ -258,6 +310,11 @@ export class Map {
 		this.game.attacks.forEach(attack => attack.render())
 	}
 
+	/**
+	 * @param {number} tileNum
+	 * @param {number} screenX
+	 * @param {number} screenY
+	 */
 	renderTile(tileNum, screenX, screenY) {
 		if (!tileNum) {
 			return
@@ -268,8 +325,8 @@ export class Map {
 			const frame = this.animated_tiles[tileNum].frameorder[frameIndex]
 			this.animation_tilesets[tileNum]?.drawTile(frame, screenX, screenY)
 		} else {
-			const ts = this.getTileset(tileNum)
-			if (!ts) return
+			let ts = this.getTileset(tileNum)
+			if(!ts) return
 			this.game.tilesets[ts.source].drawTile(tileNum - ts.firstgid + 1, screenX, screenY)
 		}
 	}
@@ -303,12 +360,25 @@ export class Map {
 		this.game.ctx.stroke()
 	}
 
+	/**
+	 * @param {number} tileNum
+	 * @returns {{firstgid: number, source: string}?}
+	 */
 	getTileset(tileNum) {
-		for (let i = this.tilesets.length-1;i >= 0; i--) {
-			if (tileNum >= this.tilesets[i].firstgid) return this.tilesets[i]
+		for (let i = this.tilesets.length-1; i>= 0; i--) {
+			if (tileNum >= this.tilesets[i].firstgid){
+				return this.tilesets[i]
+			}
 		}
+		return null
 	}
 
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} tileNum
+	 * @param {any[]} layers
+	 */
 	replaceTileAt(x, y, tileNum, layers) {
 		const index = y * this.width + x
 
@@ -323,23 +393,27 @@ export class Map {
 					layer.data[index] = tileNum
 
 		if (layers?.[2])
-			for (const layer of [...this.perspective])
+			for (let layer of [...this.perspective])
 				if (layer.data[index] !== undefined)
 					layer.data[index] = tileNum
 	}
 
+	/**
+	 * @param {number} sx
+	 * @param {number} sy
+	 * @param {number} w
+	 * @param {number} h
+	 * @param {number} tileNum
+	 * @param {Array<number>} layers
+	 */
 	replaceTileRectAt(sx, sy, w, h, tileNum, layers) {
-		const tileset = this.getTileset(tileNum)
-		if (!tileset) {
-			console.error(`No tileset found for tile number ${tileNum}`)
-			return
-		}
-
-		const tilesetColumns = this.game.tilesets[tileset.source].tilesPerRow
+		let tileset = this.getTileset(tileNum)
+		if(!tileset) throw new Error(`no tile found for n ${tileNum}`)
+		let tilesetColumns = this.game.tilesets[tileset.source].get_tilesPerRow()
 		
 		for (let y = 0; y < h; y++) {
 			for (let x = 0; x < w; x++) {
-				const currentTileNum = tileNum + x + (y * tilesetColumns)
+				let currentTileNum = tileNum + x + (y * tilesetColumns)
 				
 				this.replaceTileAt(
 					sx + x, 
@@ -350,5 +424,4 @@ export class Map {
 			}
 		}
 	}
-
 }

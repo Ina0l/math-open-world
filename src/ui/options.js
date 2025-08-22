@@ -1,3 +1,4 @@
+//@ts-check
 import { constants, config } from "../constants.js";
 import { Game } from "../core/game.js";
 import { clamp } from "../utils.js";
@@ -16,9 +17,9 @@ export class OptionsMenu extends Ui{
             new Button(game, "debug-option-button", 0, 0,
                 constants.TILE_SIZE / 2, constants.TILE_SIZE / 2, true,
                 (button, t) => {
-					button.ui.game.audioManager.playSound('menu', 'click')
+					button.get_ui().game.audioManager.playSound('menu', 'click')
                     this.debug = !this.debug
-                    let checkbox = button.ui.get_widget("debug-option-checkbox-icon")
+                    let checkbox = /**@type {Icon} */(button.get_ui().get_widget("debug-option-checkbox-icon"))
                     if(this.debug) checkbox.tile_nb = 2
                     else checkbox.tile_nb = 1
                 }).center_arround(constants.TILE_SIZE, - constants.TILE_SIZE),
@@ -30,7 +31,7 @@ export class OptionsMenu extends Ui{
                 "Music Volume", true, 0, constants.TILE_SIZE / 3),
             new Button(game, "music-volume-button", 0, 0,
                 constants.TILE_SIZE / 2, constants.TILE_SIZE / 2, true, (b, t) => {
-					b.ui.game.audioManager.playSound('menu', 'click')
+					b.get_ui().game.audioManager.playSound('menu', 'click')
 				})
                 .center_arround(constants.TILE_SIZE * 1.5, 0),
             new Icon(game, "music-volume-cursor-icon", 0, 0,
@@ -40,40 +41,48 @@ export class OptionsMenu extends Ui{
                 "Sound Effects Volume", true, 0, constants.TILE_SIZE / 3),
             new Button(game, "sound-effects-volume-button", 0, 0,
                 constants.TILE_SIZE / 2, constants.TILE_SIZE / 2, true, (b, t) => {
-					b.ui.game.audioManager.playSound('menu', 'click')
+					b.get_ui().game.audioManager.playSound('menu', 'click')
 				})
                 .center_arround(constants.TILE_SIZE * 1.5, constants.TILE_SIZE),
             new Icon(game, "sound-effects-volume-cursor-icon", 0, 0,
                 game.tilesets["selection_cursor"], 1, true, 1)
                 .center_arround(constants.TILE_SIZE * 1.5, constants.TILE_SIZE)
         ], (ui, t) => {
-            let music_volume_button = ui.get_widget("music-volume-button")
-            let sound_effects_volume_button = ui.get_widget("sound-effects-volume-button")
+            let music_volume_button = /** @type {Button} */(ui.get_widget("music-volume-button"))
+            let sound_effects_volume_button = /** @type {Button} */(ui.get_widget("sound-effects-volume-button"))
             if(music_volume_button.is_hovered || music_volume_button.is_clicked)
-                ui.get_widget("music-volume-cursor-icon").tile_nb = 2
+                /**@type {Icon} */(ui.get_widget("music-volume-cursor-icon")).tile_nb = 2
             else
-                ui.get_widget("music-volume-cursor-icon").tile_nb = 1
+                /**@type {Icon} */(ui.get_widget("music-volume-cursor-icon")).tile_nb = 1
 
             if(sound_effects_volume_button.is_hovered || sound_effects_volume_button.is_clicked)
-                ui.get_widget("sound-effects-volume-cursor-icon").tile_nb = 2
+                /**@type {Icon} */(ui.get_widget("sound-effects-volume-cursor-icon")).tile_nb = 2
             else
-                ui.get_widget("sound-effects-volume-cursor-icon").tile_nb = 1
+                /**@type {Icon} */(ui.get_widget("sound-effects-volume-cursor-icon")).tile_nb = 1
 
             if(music_volume_button.is_clicked){
-                music_volume_button.center_arround(clamp(ui.game.inputHandler.mouse_pos.x,
-                    - constants.TILE_SIZE * 1.5, constants.TILE_SIZE * 1.5), 0)
+                music_volume_button.center_arround(
+                    clamp(
+                        ui.game.inputHandler.mouse_pos.x,
+                        - constants.TILE_SIZE * 1.5, constants.TILE_SIZE * 1.5
+                    ), 0
+                );
 
-                ui.get_widget("music-volume-cursor-icon").x.set_value(music_volume_button.x.get())
+                /**@type {Icon} */(ui.get_widget("music-volume-cursor-icon")).x.set_value(music_volume_button.x.get())
                 this.music_volume = Math.abs(Math.round((music_volume_button.x.get() +
                                         music_volume_button.width.get() / 2 +
                                         constants.TILE_SIZE * 1.5) / (constants.TILE_SIZE * 3) * 100))
 				this.game.audioManager.setMusicVolume(this.music_volume)
             }
             if(sound_effects_volume_button.is_clicked){
-                sound_effects_volume_button.center_arround(clamp(ui.game.inputHandler.mouse_pos.x,
-                    - constants.TILE_SIZE * 1.5, constants.TILE_SIZE * 1.5), constants.TILE_SIZE)
+                sound_effects_volume_button.center_arround(
+                    clamp(
+                        ui.game.inputHandler.mouse_pos.x,
+                        - constants.TILE_SIZE * 1.5, constants.TILE_SIZE * 1.5
+                    ), constants.TILE_SIZE
+                );
                     
-                ui.get_widget("sound-effects-volume-cursor-icon").x.set_value(sound_effects_volume_button.x.get())
+                /**@type {Icon} */(ui.get_widget("sound-effects-volume-cursor-icon")).x.set_value(sound_effects_volume_button.x.get())
                 this.sound_effects_volume = Math.abs(Math.round((sound_effects_volume_button.x.get() +
                                                 sound_effects_volume_button.width.get() / 2 +
                                                 constants.TILE_SIZE * 1.5) / (constants.TILE_SIZE * 3) * 100))
@@ -100,7 +109,6 @@ export class OptionsMenu extends Ui{
             await options.load(config.IMG_DIR + src)
         } catch (error) {
             console.error(`couldn't load file "${src}" : ${error.message}`)
-            return
         }
         return options
     }

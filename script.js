@@ -5,7 +5,8 @@ import { Game } from './src/core/game.js'
   await game.run()  // Wait for game init
 
   // Hide loading screen and show canvas
-  document.getElementById('loading-screen').style.display = 'none'
-  const canvas = document.getElementById('game')
-  canvas.style.display = 'block'
+  let loading_screen = document.getElementById('loading-screen')
+  if(loading_screen == null) throw new Error('Couldn\'t find html element loading screen')
+  loading_screen.style.display = 'none'
+  game.canvas.style.display = 'block'
 })()

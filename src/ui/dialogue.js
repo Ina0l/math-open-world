@@ -1,20 +1,21 @@
-import { config, constants } from "../constants.js"
+//@ts-check
+import { config } from "../constants.js"
 import { Game } from "../core/game.js"
-import { Resizeable, slice, YResizeable } from "../utils.js"
+import { slice, YResizeable } from "../utils.js"
 import { Tileset } from "../world/tileset.js"
 import { Ui } from "./ui.js"
-import { Button, Icon, Label } from "./widgets.js"
+import { Button, Icon, Label, Widget } from "./widgets.js"
 
+//@ts-ignore
 export class Dialogue extends Ui{
-
     /**
-     * !!! One shouldn't use the constructor to make an dialogue, use the static create method instead
+     * ## One shouldn't use the constructor to make an dialogue, use the static create method instead
      * @param {Game} game 
-     * @param {String} text 
+     * @param {string} text 
      * @param {Tileset} arrow_tileset 
      * @param {(d: Dialogue) => void} on_end 
-     * @param {Number} fontsize 
-     * @param {String} textcolor 
+     * @param {number} fontsize 
+     * @param {string} textcolor 
      * @param {string} font 
      */
     constructor(game, text, arrow_tileset, on_end, fontsize, textcolor, font){
@@ -23,16 +24,12 @@ export class Dialogue extends Ui{
             true, 0, fontsize, textcolor, font),
             new Button(game, "new-line-button",
                 - game.canvas.width / 2, new YResizeable(game, - game.canvas.height / 2), game.canvas.width, new YResizeable(game, game.canvas.height),
-                true, (button, t) => button.ui.next()),
+                true, (button, t) => /**@type {Dialogue} */(button.get_ui()).next()),
             new Icon(game, "arrow-icon", game.canvas.width / 9 * 4, new YResizeable(game, game.canvas.height / 9 * 4),
                 arrow_tileset, 1, false, 0)
         ]
 
-        var widgets_states_handler = (dialogue, time) => {
-
-        }
-
-        super(game, game.canvas.width, new YResizeable(game, game.canvas.height), widgets, widgets_states_handler)
+        super(game, game.canvas.width, new YResizeable(game, game.canvas.height), widgets, (d, t)=>{})
 
         this.text = text
         this.on_end = on_end
@@ -43,13 +40,14 @@ export class Dialogue extends Ui{
     }
 
     /**
-     * Method used to build an dialogue. This method is async and static
+     * #### Method used to build an dialogue.
+     * This method is async and static
      * @param {Game} game - The dialogue's game
-     * @param {String} src - The dialogue's background's path
-     * @param {String} text - The content of the dialogue
+     * @param {string} src - The dialogue's background's path
+     * @param {string} text - The content of the dialogue
      * @param {(d: Dialogue) => void} [on_end = (d: Dialogue) => {}] - The command executed at the end of the dialogue
-     * @param {Number} fontsize - Dialogue's text's font size
-     * @param {String} [textcolor="black"] - Dialogue's text's color
+     * @param {number} fontsize - Dialogue's text's font size
+     * @param {string} [textcolor="black"] - Dialogue's text's color
      * @param {string} [font="arial"] - Dialogue's text's font
      * @returns {Promise<Dialogue>}
      */
@@ -59,19 +57,22 @@ export class Dialogue extends Ui{
 			await dialogue.load(config.IMG_DIR + src)
 		} catch (error) {
 			console.error(`couldn't load file "${src}" : ${error.message}`)
-			return
 		}
 		return dialogue
     }
 
+    /**
+     * 
+     * @param {number} current_time 
+     * @returns 
+     */
     update(current_time){
         super.update(current_time)
         if(current_time - this.last_time < 80) return
         this.last_time = current_time
         if(this.game.inputHandler.isKeyPressed("enter"))
             this.next()
-        /** @type {Label} */
-        var label = this.get_widget("dialogue-content")
+        var label = /** @type {Label} */(this.get_widget("dialogue-content"))
         if(label.text == this.sentences[this.sentence]) return
         label.text = label.text+this.sentences[this.sentence].at(label.text.length)
 
@@ -82,8 +83,7 @@ export class Dialogue extends Ui{
     }
 
     next(){
-        /** @type {Label} */
-        var label = this.get_widget("dialogue-content")
+        var label = /** @type {Label} */(this.get_widget("dialogue-content"))
         if(label.text != this.sentences[this.sentence]){
             label.text = this.sentences[this.sentence]
             this.get_widget("arrow-icon").rendered = true
@@ -101,21 +101,22 @@ export class Dialogue extends Ui{
     }
 }
 
+//@ts-ignore
 export class QuestionDialogue extends Ui {
     /**
-     * !!! One shouldn't use the constructor to make an dialogue, use the static create method instead
+     * ## One shouldn't use the constructor to make an dialogue, use the static create method instead
      * @param {Game} game 
-     * @param {String} text 
+     * @param {string} text 
      * @param {Tileset} arrow_tileset 
-     * @param {Array<String>} anwsers 
-     * @param {Number} anwsers_x 
-     * @param {Number} anwsers_y 
-     * @param {Number} anwsers_width 
-     * @param {Number} anwsers_height 
+     * @param {Array<string>} anwsers 
+     * @param {number} anwsers_x 
+     * @param {number} anwsers_y 
+     * @param {number} anwsers_width 
+     * @param {number} anwsers_height 
      * @param {Tileset} anwser_box_tileset 
-     * @param {(d: Dialogue, a: String) => void} on_end 
-     * @param {Number} fontsize 
-     * @param {String} textcolor 
+     * @param {(d: Dialogue, a: string) => void} on_end 
+     * @param {number} fontsize 
+     * @param {string} textcolor 
      * @param {string} font 
      */
     constructor(game, text, arrow_tileset, anwsers, anwsers_x, anwsers_y, anwsers_width, anwsers_height, anwser_box_tileset, on_end, fontsize, textcolor, font){
@@ -124,7 +125,7 @@ export class QuestionDialogue extends Ui {
             true, 0, fontsize, textcolor, font),
             new Button(game, "new-line-button",
                 - game.canvas.width / 2, new YResizeable(game, - game.canvas.height / 2), game.canvas.width, new YResizeable(game, game.canvas.height),
-                true, (button, t) => button.ui.next()),
+                true, (button, t) => /**@type {QuestionDialogue} */(button.get_ui()).next()),
             new Icon(game, "arrow-icon", game.canvas.width / 9 * 4, new YResizeable(game, game.canvas.height / 9 * 4),
                 arrow_tileset, 1, false, 0)
         ]
@@ -143,10 +144,13 @@ export class QuestionDialogue extends Ui {
 					anwsers_x, new YResizeable(game, anwsers_y - ((i + 1) * anwsers_height)), anwsers_width, new YResizeable(game, anwsers_height), false,
 					(button, t) => {
 						if(!button.has_focus) return
-						if(button.ui.sentence + 1 != button.ui.sentences.length || button.ui.get_widget("dialogue-content").text != button.ui.sentences[button.ui.sentence]) return
-						let anwser_number = parseInt(button.id.split("-").at(-1))
-						button.ui.is_finished = true
-						button.ui.on_end(button.ui, button.ui.anwsers[anwser_number])
+						if(
+                               /**@type {QuestionDialogue} */(button.get_ui()).sentence + 1 != /**@type {QuestionDialogue} */(button.get_ui()).sentences.length
+                            || /**@type {Label} */(button.get_ui().get_widget("dialogue-content")).text != /**@type {QuestionDialogue} */(button.get_ui()).sentences[/**@type {QuestionDialogue} */(button.get_ui()).sentence]
+                        ) return
+						let anwser_number = parseInt(button.id.split("-").at(-1)||"0");
+						/**@type {QuestionDialogue} */(button.get_ui()).is_finished = true;
+						/**@type {QuestionDialogue} */(button.get_ui()).on_end(/**@type {Dialogue} */(button.get_ui()), /**@type {QuestionDialogue} */(button.get_ui()).anwsers[anwser_number])
 					}
 				)
 			)
@@ -159,6 +163,11 @@ export class QuestionDialogue extends Ui {
             anwsers_x + anwsers_width - arrow_tileset.screen_tile_size.get(), new YResizeable(game, anwsers_y - ((i + 0.75) * anwsers_height)), arrow_tileset, 4, false, 1))
         }
 
+        /**
+         * 
+         * @param {QuestionDialogue} dialogue 
+         * @param {number} time 
+         */
         var widgets_states_handler = (dialogue, time) => {
             for(let i = 0; i < anwsers.length; i++){
                 if(dialogue.get_widget("anwser-button-"+i.toString()).has_focus){
@@ -169,7 +178,7 @@ export class QuestionDialogue extends Ui {
             }
         }
 
-        super(game, game.canvas.width, new YResizeable(game, game.canvas.height), widgets, widgets_states_handler)
+        super(game, game.canvas.width, new YResizeable(game, game.canvas.height), widgets, (d, t)=>{widgets_states_handler(/**@type {QuestionDialogue} */(d), t)})
 
         this.text = text
         this.anwsers = anwsers
@@ -185,21 +194,22 @@ export class QuestionDialogue extends Ui {
     }
 
     /**
-     * Method used to build an dialogue. This method is async and static
+     * #### Method used to build an dialogue.
+     * This method is async and static
      * @param {Game} game - The dialogue's game
-     * @param {String} src - The dialogue's background's path
-     * @param {String} text - The content of the dialogue
-     * @param {Array<String>} anwsers - The possible anwsers to the question
-     * @param {Number} anwsers_x - The anwsers' box's bottom left corner's x coordinate
-     * @param {Number} anwsers_y - The anwsers' box's bottom left corner's y coordinate
-     * @param {Number} anwsers_width - The width of the anwsers' box
-     * @param {Number} anwsers_height - The height of one anwser in the anwsers' box
-     * @param {String} anwser_box_tileset_src - The box drawing tileset's path
-     * @param {(d: Dialogue, anwser: String) => void} [on_end = (d: Dialogue, a: String) => {}] - The command executed at the end of the dialogue, 'anwser' refers to the anwser that have been chosen by the player
+     * @param {string} src - The dialogue's background's path
+     * @param {string} text - The content of the dialogue
+     * @param {Array<string>} anwsers - The possible anwsers to the question
+     * @param {number} anwsers_x - The anwsers' box's bottom left corner's x coordinate
+     * @param {number} anwsers_y - The anwsers' box's bottom left corner's y coordinate
+     * @param {number} anwsers_width - The width of the anwsers' box
+     * @param {number} anwsers_height - The height of one anwser in the anwsers' box
+     * @param {string} anwser_box_tileset_src - The box drawing tileset's path
+     * @param {(d: Dialogue, anwser: string) => void} [on_end = (d: Dialogue, a: string) => {}] - The command executed at the end of the dialogue, 'anwser' refers to the anwser that have been chosen by the player
      * @param {number} [fontsize=15] - Dialogue's text's font size
-     * @param {String} [textcolor="black"] - Dialogue's text's color
+     * @param {string} [textcolor="black"] - Dialogue's text's color
      * @param {string} [font="arial"] - Dialogue's text's font
-     * @returns {Promise<Dialogue>}
+     * @returns {Promise<QuestionDialogue>}
      */
     static async create(game, src, text, anwsers, anwsers_x, anwsers_y, anwsers_width, anwsers_height, anwser_box_tileset_src, on_end=(d, a) => {}, fontsize=15, textcolor="black", font="arial"){
         anwsers_width = Math.round(anwsers_width)
@@ -211,11 +221,15 @@ export class QuestionDialogue extends Ui {
 			await dialogue.load(config.IMG_DIR + src)
 		} catch (error) {
 			console.error(`couldn't load file "${src}" : ${error.message}`)
-			return
 		}
 		return dialogue
     }
 
+    /**
+     * 
+     * @param {number} current_time 
+     * @returns 
+     */
     update(current_time){
         super.update(current_time)
 
@@ -225,12 +239,11 @@ export class QuestionDialogue extends Ui {
         if(this.game.inputHandler.isKeyPressed("enter")){
             this.next()
             if(this.focused_widgets.length > 1){
-                let selected_awnser = this.focused_widgets.filter(widget => widget != this.get_widget("new-line-button"))[0]
+                let selected_awnser = /**@type {Button} */(this.focused_widgets.filter(widget => widget != this.get_widget("new-line-button"))[0])
                 selected_awnser.command(selected_awnser, current_time)
             }
         }
-        /** @type {Label} */
-        var label = this.get_widget("dialogue-content")
+        var label = /** @type {Label} */(this.get_widget("dialogue-content"))
         
         if(label.text == this.sentences[this.sentence]) return
         label.text = label.text+this.sentences[this.sentence].at(label.text.length)
@@ -257,8 +270,7 @@ export class QuestionDialogue extends Ui {
     }
 
     next(){
-        /** @type {Label} */
-        var label = this.get_widget("dialogue-content")
+        var label = /** @type {Label} */(this.get_widget("dialogue-content"))
         if(label.text != this.sentences[this.sentence]){
             label.text = this.sentences[this.sentence]
 
@@ -284,13 +296,18 @@ export class QuestionDialogue extends Ui {
         label.text = ""
     }
 
-    resize(d){
-        var anwsers_width = this.get_widget("anwser-button-0").width.get()
-        var anwsers_height = this.get_widget("anwser-button-0").height.get()
+    /**
+     * Well..., I forgot why I coded this method
+     * 
+     * Maybe it has a purpose so I'll let it be
+     */
+    resize(){
+        var anwsers_width = /**@type {Button} */(this.get_widget("anwser-button-0")).width.get()
+        var anwsers_height = /**@type {Button} */(this.get_widget("anwser-button-0")).height.get()
         var anwsers_x = this.get_widget("anwser-button-0").x.get()
         var anwsers_y = this.get_widget("anwser-button-0").y.get() + anwsers_height
-        var anwser_box_tileset = this.get_widget("anwsers-box-icon-0-0").tileset
-        var anwser_box_rendering = this.sentence + 1 == this.sentences.length && this.get_widget("dialogue-content").text == this.sentences[this.sentence]
+        var anwser_box_tileset = /**@type {Icon} */(this.get_widget("anwsers-box-icon-0-0")).tileset
+        var anwser_box_rendering = this.sentence + 1 == this.sentences.length && /**@type {Label} */(this.get_widget("dialogue-content")).text == this.sentences[this.sentence]
     
         /** @type {Array<Widget>} */
         let icon_widgets = []

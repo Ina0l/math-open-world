@@ -1,3 +1,4 @@
+//@ts-check
 export const config = {
 	MAP_DIR: "./assets/maps/",
 	IMG_DIR: "./assets/images/",
@@ -5,7 +6,7 @@ export const config = {
 }
 
 export const constants = {
-    GAME_TPS: 128,
+    GAME_MAX_TPS: 128,
     TILE_SIZE: 128,
 
     PLAYER_COLLISION_BOX_WIDTH: 2 * 128 / 3,
@@ -71,30 +72,33 @@ export const constants = {
 
 const mn = 0.4811320754716981
 
+/**
+ * Remember that  *tile_size = canvas.width / 10* , so you don't need any reference to the game to define the 'screen_tile_size'
+ * @type {Array<{src: string, img_tile_size: number, screen_tile_size: (tile_size: number) => number, spacing?: number}>}
+ */
 export const tilesets = [
-	{ src:'map.png',																	img_tile_size: 16,		screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src:'cabane_tileset.png', 														img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src:'frog.png',																	img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE / 2	},
-	{ src:'spider_tileset.png', 														img_tile_size: 100, 	screen_tile_size: (game, constants) => constants.TILE_SIZE * 4	},
-	{ src:'book_ui_focus.png',															img_tile_size: 4,  		screen_tile_size: (game, constants) => game.canvas.width / 16	},
-	{ src:'next_page_arrow_tileset.png',												img_tile_size: 24,  	screen_tile_size: (game, constants) => game.canvas.width / 20	},
-	{ src:'Kanji.png',																	img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src:'Axe.png',																	img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src:'selection_cursor.png', 														img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE / 2	},
-	{ src:'checkbox_tileset.png', 														img_tile_size: 32,  	screen_tile_size: (game, constants) => constants.TILE_SIZE / 2	},
-	{ src:'arrow.png',																	img_tile_size: 15,  	screen_tile_size: (game, constants) => constants.TILE_SIZE / 8	},
-	{ src:'inventory_tooltip_tileset.png',												img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE / 4	},
-	{ src:'keys_tileset.png', 															img_tile_size: 20,  	screen_tile_size: (game, constants) => constants.TILE_SIZE / 4	},
-	{ src:'digital_locks.png',															img_tile_size: 20,  	screen_tile_size: (game, constants) => constants.TILE_SIZE * mn	},
-	{ src:'Game Boy Advance - The Legend of Zelda The Minish Cap - Lon Lon Ranch.png',	img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src:'Game Boy Advance - The Legend of Zelda The Minish Cap - Hyrule Town.png', 	img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src:'Game Boy Advance - The Legend of Zelda The Minish Cap - Royal Crypt.png',	img_tile_size: 16,		screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src:'LegendOfZelda-MinishCap-DarkHyruleCastle.png', 								img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src:'firefly.png', 																img_tile_size: 16,  	screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src: 'e1.png',																	img_tile_size: 16,		screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src: 'e2.png',																	img_tile_size: 16,		screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src: 'statues.png',																img_tile_size: 16,		screen_tile_size: (game, constants) => constants.TILE_SIZE		},
-	{ src: 'bear.png',																	img_tile_size: 64,		screen_tile_size: (game, constants) => constants.TILE_SIZE * 4	},
+	{ src:'map.png',																	img_tile_size: 16,		screen_tile_size: (tile_size) => tile_size		},
+	{ src:'cabane_tileset.png', 														img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size		},
+	{ src:'frog.png',																	img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size / 2	},
+	{ src:'spider_tileset.png', 														img_tile_size: 100, 	screen_tile_size: (tile_size) => tile_size * 4	},
+	{ src:'next_page_arrow_tileset.png',												img_tile_size: 24,  	screen_tile_size: (tile_size) => tile_size / 2	},
+	{ src:'Kanji.png',																	img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size		},
+	{ src:'Axe.png',																	img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size		},
+	{ src:'selection_cursor.png', 														img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size / 2	},
+	{ src:'checkbox_tileset.png', 														img_tile_size: 32,  	screen_tile_size: (tile_size) => tile_size / 2	},
+	{ src:'arrow.png',																	img_tile_size: 15,  	screen_tile_size: (tile_size) => tile_size / 8	},
+	{ src:'inventory_tooltip_tileset.png',												img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size / 4	},
+	{ src:'keys_tileset.png', 															img_tile_size: 20,  	screen_tile_size: (tile_size) => tile_size / 4	},
+	{ src:'digital_locks.png',															img_tile_size: 20,  	screen_tile_size: (tile_size) => tile_size * mn	},
+	{ src:'Game Boy Advance - The Legend of Zelda The Minish Cap - Lon Lon Ranch.png',	img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size		},
+	{ src:'Game Boy Advance - The Legend of Zelda The Minish Cap - Hyrule Town.png', 	img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size		},
+	{ src:'Game Boy Advance - The Legend of Zelda The Minish Cap - Royal Crypt.png',	img_tile_size: 16,		screen_tile_size: (tile_size) => tile_size		},
+	{ src:'LegendOfZelda-MinishCap-DarkHyruleCastle.png', 								img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size		},
+	{ src:'firefly.png', 																img_tile_size: 16,  	screen_tile_size: (tile_size) => tile_size		},
+	{ src: 'e1.png',																	img_tile_size: 16,		screen_tile_size: (tile_size) => tile_size		},
+	{ src: 'e2.png',																	img_tile_size: 16,		screen_tile_size: (tile_size) => tile_size		},
+	{ src: 'statues.png',																img_tile_size: 16,		screen_tile_size: (tile_size) => tile_size		},
+	{ src: 'bear.png',																	img_tile_size: 64,		screen_tile_size: (tile_size) => tile_size * 4	},
 ]
 
 export const maps = [
@@ -108,7 +112,7 @@ export const maps = [
 			1446: {height: 72},
 			1448: {height: 72},
 			3076: {x: 24, y: 80, width: 80, height: 24},
-			3910: {void: true},
+			3910: {void_tile: true},
 			3950: {width: 48},
 			4070: {width: 48},
 			4030: {width: 48}
@@ -125,12 +129,13 @@ export const maps = [
 	{
 		src: 'castle.json',  bg_color: '#C8F0D0', spawn_cords: {x: 12, y: 70},
 		collisions: {
-			45042: {void:true},
-			45043: {void:true},
-			45044: {void:true},
-			45267: {void:true},
-			45268: {void:true},
-			45269: {void:true},
+			45042: {void_tile:true},
+			45043: {void_tile:true},
+			45044: {void_tile:true},
+			45267: {void_tile:true},
+			45268: {void_tile:true},
+			45269: {void_tile:true},
+			656566563: {}
 		},
 		block_depth_order: []
 	}
