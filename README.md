@@ -6,6 +6,6 @@ This project was created as part of the NSI (Computer Science) course by student
 # Credits
 
 Special thanks to :
-- [Ina0l](https://github.com/Ina0l)
+- [Ina0](https://github.com/Ina0l)
 - [Junsu KIM](https://github.com/1llusia)
 - [Joris FILAFERRO]()
