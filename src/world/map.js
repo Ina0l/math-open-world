@@ -153,14 +153,14 @@ export class Map {
 		/**@type {Array<number>} */
 		let topmost_tiles = []
 		if(this.perspective.length > 0){
-			topmost_tiles = this.perspective[0].data.slice(0)
+			topmost_tiles = this.perspective.at(-1).data.slice(0)
 		} else if(this.blocks.length > 0){
-			topmost_tiles = this.blocks[0].data.slice(0)
+			topmost_tiles = this.blocks.at(-1).data.slice(0)
 		} else if(this.ground.length > 0){
-			topmost_tiles = this.ground[0].data.slice(0)
+			topmost_tiles = this.ground.at(-1).data.slice(0)
 		}
 		for(let layer_type of ["perspective", "blocks", "ground"]){
-			for(let layer of this[layer_type]){
+			for(let layer of this[layer_type].toReversed()){
 				for(let i=0; i < (layer.width * layer.height); i++){
 					if(topmost_tiles[i] <= 0){
 						topmost_tiles[i] = layer.data[i]
